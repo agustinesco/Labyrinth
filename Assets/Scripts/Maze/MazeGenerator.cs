@@ -1,0 +1,279 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Labyrinth.Maze
+{
+    public class MazeGenerator
+    {
+        private readonly int _width;
+        private readonly int _height;
+        private readonly int _corridorWidth;
+        private MazeGrid _grid;
+        private System.Random _random;
+
+        // Step size is corridorWidth + 1 (corridor + wall between corridors)
+        private (int dx, int dy)[] _directions;
+
+        // Key room properties
+        private const int RoomSize = 9;
+        private int _roomCenterX;
+        private int _roomCenterY;
+        private List<(int x, int y, int dx, int dy)> _roomEntrances;
+
+        public MazeGenerator(int width, int height, int? seed = null, int corridorWidth = 1)
+        {
+            _width = width;
+            _height = height;
+
+            // Ensure corridor width is odd (for symmetrical corridors) and at least 1
+            _corridorWidth = Mathf.Max(1, corridorWidth);
+            if (_corridorWidth % 2 == 0)
+                _corridorWidth += 1; // Make it odd
+
+            _random = seed.HasValue ? new System.Random(seed.Value) : new System.Random();
+
+            // Wall thickness scales with corridor width (minimum 1)
+            int wallThickness = Mathf.Max(1, _corridorWidth / 2);
+
+            // Step size: corridor width + wall thickness
+            int step = _corridorWidth + wallThickness;
+            _directions = new (int, int)[]
+            {
+                (0, step), (step, 0), (0, -step), (-step, 0)
+            };
+        }
+
+        public MazeGrid Generate()
+        {
+            _grid = new MazeGrid(_width, _height);
+
+            // Calculate and carve the key room in the center
+            CarveKeyRoom();
+
+            // Start position needs to account for corridor width
+            int halfWidth = _corridorWidth / 2;
+            int startX = 1 + halfWidth;
+            int startY = 1 + halfWidth;
+
+            CarvePassage(startX, startY);
+
+            // Connect room entrances to the maze
+            ConnectRoomToMaze();
+
+            _grid.GetCell(startX, startY).IsStart = true;
+
+            // Key room center is the exit (where key spawns)
+            var exitCell = _grid.GetCell(_roomCenterX, _roomCenterY);
+            exitCell.IsExit = true;
+
+            return _grid;
+        }
+
+        private void CarvePassage(int x, int y)
+        {
+            // Carve a corridor-width area at this position
+            CarveArea(x, y);
+            _grid.GetCell(x, y).IsVisited = true;
+
+            var directions = ShuffleDirections();
+
+            foreach (var (dx, dy) in directions)
+            {
+                int newX = x + dx;
+                int newY = y + dy;
+
+                if (IsValidCarveTarget(newX, newY))
+                {
+                    // Carve the corridor between current cell and new cell
+                    CarveCorridorBetween(x, y, newX, newY);
+
+                    CarvePassage(newX, newY);
+                }
+            }
+        }
+
+        private void CarveArea(int centerX, int centerY)
+        {
+            int halfWidth = _corridorWidth / 2;
+            for (int ox = -halfWidth; ox <= halfWidth; ox++)
+            {
+                for (int oy = -halfWidth; oy <= halfWidth; oy++)
+                {
+                    int cx = centerX + ox;
+                    int cy = centerY + oy;
+                    if (_grid.IsInBounds(cx, cy) && cx > 0 && cx < _width - 1 && cy > 0 && cy < _height - 1)
+                    {
+                        _grid.GetCell(cx, cy).IsWall = false;
+                    }
+                }
+            }
+        }
+
+        private void CarveCorridorBetween(int x1, int y1, int x2, int y2)
+        {
+            int dx = x2 > x1 ? 1 : (x2 < x1 ? -1 : 0);
+            int dy = y2 > y1 ? 1 : (y2 < y1 ? -1 : 0);
+
+            int cx = x1;
+            int cy = y1;
+
+            while (cx != x2 || cy != y2)
+            {
+                cx += dx;
+                cy += dy;
+                CarveArea(cx, cy);
+            }
+        }
+
+        private bool IsValidCarveTarget(int x, int y)
+        {
+            int halfWidth = _corridorWidth / 2;
+            // Check if the target area is within bounds and hasn't been carved yet
+            if (!_grid.IsInBounds(x, y))
+                return false;
+
+            // Ensure we stay away from edges
+            if (x - halfWidth <= 0 || x + halfWidth >= _width - 1 ||
+                y - halfWidth <= 0 || y + halfWidth >= _height - 1)
+                return false;
+
+            // Skip cells that overlap with the key room area (with buffer)
+            int roomHalf = RoomSize / 2 + 1; // +1 buffer for wall around room
+            if (x >= _roomCenterX - roomHalf && x <= _roomCenterX + roomHalf &&
+                y >= _roomCenterY - roomHalf && y <= _roomCenterY + roomHalf)
+                return false;
+
+            // Check if center cell is still a wall (unvisited)
+            return _grid.GetCell(x, y).IsWall;
+        }
+
+        private void CarveKeyRoom()
+        {
+            // Calculate room center (center of the maze)
+            _roomCenterX = _width / 2;
+            _roomCenterY = _height / 2;
+
+            int roomHalf = RoomSize / 2;
+
+            // Carve the 9x9 room area and mark as key room
+            for (int x = _roomCenterX - roomHalf; x <= _roomCenterX + roomHalf; x++)
+            {
+                for (int y = _roomCenterY - roomHalf; y <= _roomCenterY + roomHalf; y++)
+                {
+                    if (_grid.IsInBounds(x, y))
+                    {
+                        var cell = _grid.GetCell(x, y);
+                        cell.IsWall = false;
+                        cell.IsKeyRoom = true;
+                    }
+                }
+            }
+
+            // Select 2-4 random entrances from the four cardinal directions
+            var possibleEntrances = new List<(int x, int y, int dx, int dy)>
+            {
+                (_roomCenterX, _roomCenterY + roomHalf, 0, 1),   // North
+                (_roomCenterX, _roomCenterY - roomHalf, 0, -1), // South
+                (_roomCenterX + roomHalf, _roomCenterY, 1, 0),  // East
+                (_roomCenterX - roomHalf, _roomCenterY, -1, 0)  // West
+            };
+
+            // Shuffle and select 2-4 entrances
+            ShuffleList(possibleEntrances);
+            int entranceCount = _random.Next(2, 5); // 2 to 4 entrances
+            _roomEntrances = possibleEntrances.GetRange(0, entranceCount);
+        }
+
+        private void ConnectRoomToMaze()
+        {
+            foreach (var (entranceX, entranceY, dx, dy) in _roomEntrances)
+            {
+                // Carve outward from the entrance until we hit a maze corridor
+                int x = entranceX + dx;
+                int y = entranceY + dy;
+
+                while (_grid.IsInBounds(x, y))
+                {
+                    var cell = _grid.GetCell(x, y);
+
+                    // If we found an existing corridor (non-wall, non-room), we're connected
+                    if (!cell.IsWall && !cell.IsKeyRoom)
+                        break;
+
+                    // Carve this cell and surrounding area based on corridor width
+                    CarveArea(x, y);
+
+                    x += dx;
+                    y += dy;
+                }
+            }
+        }
+
+        private void ShuffleList<T>(List<T> list)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = _random.Next(i + 1);
+                T temp = list[i];
+                list[i] = list[j];
+                list[j] = temp;
+            }
+        }
+
+        private (int, int)[] ShuffleDirections()
+        {
+            var shuffled = new List<(int, int)>(_directions);
+            for (int i = shuffled.Count - 1; i > 0; i--)
+            {
+                int j = _random.Next(i + 1);
+                var temp = shuffled[i];
+                shuffled[i] = shuffled[j];
+                shuffled[j] = temp;
+            }
+            return shuffled.ToArray();
+        }
+
+        private MazeCell FindFurthestCell(int startX, int startY)
+        {
+            var distances = new int[_width, _height];
+            for (int x = 0; x < _width; x++)
+                for (int y = 0; y < _height; y++)
+                    distances[x, y] = -1;
+
+            var queue = new Queue<(int x, int y)>();
+            queue.Enqueue((startX, startY));
+            distances[startX, startY] = 0;
+
+            MazeCell furthest = _grid.GetCell(startX, startY);
+            int maxDistance = 0;
+
+            while (queue.Count > 0)
+            {
+                var (cx, cy) = queue.Dequeue();
+                int currentDist = distances[cx, cy];
+
+                if (currentDist > maxDistance)
+                {
+                    maxDistance = currentDist;
+                    furthest = _grid.GetCell(cx, cy);
+                }
+
+                foreach (var (dx, dy) in new[] { (0, 1), (1, 0), (0, -1), (-1, 0) })
+                {
+                    int nx = cx + dx;
+                    int ny = cy + dy;
+
+                    if (_grid.IsInBounds(nx, ny) &&
+                        !_grid.GetCell(nx, ny).IsWall &&
+                        distances[nx, ny] == -1)
+                    {
+                        distances[nx, ny] = currentDist + 1;
+                        queue.Enqueue((nx, ny));
+                    }
+                }
+            }
+
+            return furthest;
+        }
+    }
+}
