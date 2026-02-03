@@ -44,9 +44,14 @@ namespace Labyrinth.Player
                 return;
 
             var item = _items[0];
-            _items.RemoveAt(0);
-
             ApplyItemEffect(item);
+
+            // Check if item should be removed (single use or no uses remaining)
+            if (item.ConsumeUse())
+            {
+                _items.RemoveAt(0);
+            }
+
             OnInventoryChanged?.Invoke();
         }
 
@@ -59,9 +64,14 @@ namespace Labyrinth.Player
                 return;
 
             var item = _items[index];
-            _items.RemoveAt(index);
-
             ApplyItemEffect(item);
+
+            // Check if item should be removed (single use or no uses remaining)
+            if (item.ConsumeUse())
+            {
+                _items.RemoveAt(index);
+            }
+
             OnInventoryChanged?.Invoke();
         }
 
@@ -95,6 +105,11 @@ namespace Labyrinth.Player
                     bombObj.transform.position = transform.position;
                     var explosion = bombObj.AddComponent<Items.Explosion>();
                     explosion.Initialize((int)item.EffectValue, (int)item.Duration);
+                    break;
+
+                case ItemType.Pebbles:
+                    // Drop a pebble at player's position
+                    Labyrinth.Items.PlacedPebble.SpawnAt(transform.position);
                     break;
             }
         }

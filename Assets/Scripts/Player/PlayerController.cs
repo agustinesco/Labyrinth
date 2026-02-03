@@ -14,7 +14,7 @@ namespace Labyrinth.Player
         private float _speedBonus;
         private float _speedBoostTimer;
 
-        public float CurrentSpeed => baseSpeed + _speedBonus + (PlayerLevelSystem.Instance?.PermanentSpeedBonus ?? 0f);
+        public float CurrentSpeed => (baseSpeed + _speedBonus + (PlayerLevelSystem.Instance?.PermanentSpeedBonus ?? 0f)) * (NoClipManager.Instance?.SpeedMultiplier ?? 1f);
         public Vector2 FacingDirection => _facingDirection;
 
         private void Awake()

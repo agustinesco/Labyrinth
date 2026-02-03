@@ -18,6 +18,7 @@ namespace Labyrinth.Maze
         [SerializeField] private ItemSpawner itemSpawner;
         [SerializeField] private TrapSpawner trapSpawner;
         [SerializeField] private EnemySpawner enemySpawner;
+        [SerializeField] private PatrollingGuardSpawner patrollingGuardSpawner;
         [SerializeField] private GameObject playerPrefab;
         [SerializeField] private CameraFollow cameraFollow;
         [SerializeField] private HealthDisplay healthDisplay;
@@ -96,6 +97,12 @@ namespace Labyrinth.Maze
             if (enemySpawner != null)
             {
                 enemySpawner.Initialize(Grid, mazeRenderer.StartPosition, playerObj.transform);
+            }
+
+            // Spawn patrolling guards
+            if (patrollingGuardSpawner != null)
+            {
+                patrollingGuardSpawner.SpawnGuards(Grid, mazeRenderer.StartPosition, mazeRenderer.ExitPosition, playerObj.transform);
             }
         }
 

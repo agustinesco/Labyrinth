@@ -8,6 +8,7 @@ namespace Labyrinth.Items
         Heal,
         Explosive,
         Key, // Key is special - collected immediately, not stored
-        XP // XP is collected immediately for leveling
+        XP, // XP is collected immediately for leveling
+        Pebbles // Multi-use item that drops pebbles on the ground
     }
 }

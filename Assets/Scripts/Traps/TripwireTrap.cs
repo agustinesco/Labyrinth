@@ -1,4 +1,5 @@
 using UnityEngine;
+using Labyrinth.Player;
 
 namespace Labyrinth.Traps
 {
@@ -88,6 +89,10 @@ namespace Labyrinth.Traps
         private void OnTriggerEnter2D(Collider2D other)
         {
             if (_triggered) return;
+
+            // Don't trigger if player is in no-clip mode
+            if (NoClipManager.Instance != null && NoClipManager.Instance.IsNoClipActive)
+                return;
 
             if (other.CompareTag("Player"))
             {

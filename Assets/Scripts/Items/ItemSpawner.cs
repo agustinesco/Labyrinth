@@ -7,17 +7,31 @@ namespace Labyrinth.Items
 {
     public class ItemSpawner : MonoBehaviour
     {
+        [Header("Item Prefabs")]
         [SerializeField] private GameObject keyItemPrefab;
         [SerializeField] private GameObject speedItemPrefab;
         [SerializeField] private GameObject lightSourcePrefab;
         [SerializeField] private GameObject healItemPrefab;
         [SerializeField] private GameObject explosiveItemPrefab;
         [SerializeField] private GameObject xpItemPrefab;
+        [SerializeField] private GameObject pebblesItemPrefab;
+
+        [Header("Item Sprites (for dynamic creation)")]
+        [SerializeField] private Sprite speedItemSprite;
+        [SerializeField] private Sprite lightItemSprite;
+        [SerializeField] private Sprite healItemSprite;
+        [SerializeField] private Sprite explosiveItemSprite;
+        [SerializeField] private Sprite keyItemSprite;
+        [SerializeField] private Sprite xpItemSprite;
+        [SerializeField] private Sprite pebblesItemSprite;
+
+        [Header("Spawn Counts")]
         [SerializeField] private int speedItemCount = 3;
         [SerializeField] private int lightSourceCount = 3;
         [SerializeField] private int healItemCount = 2;
         [SerializeField] private int explosiveItemCount = 2;
         [SerializeField] private int xpItemCount = 15;
+        [SerializeField] private int pebblesItemCount = 2;
 
         public void SpawnItems(MazeGrid grid, Vector2 startPos, Vector2 exitPos)
         {
@@ -73,8 +87,8 @@ namespace Labyrinth.Items
                     var lightObj = new GameObject("LightSourceItem");
                     lightObj.transform.position = new Vector3(pos.x, pos.y, 0);
                     var sr = lightObj.AddComponent<SpriteRenderer>();
-                    sr.color = new Color(1f, 0.9f, 0.5f); // Yellow
-                    sr.sprite = CreateSquareSprite();
+                    sr.sprite = lightItemSprite != null ? lightItemSprite : CreateSquareSprite();
+                    sr.color = Color.white;
                     sr.sortingOrder = 5;
                     lightObj.transform.localScale = Vector3.one * 0.6f;
                     var collider = lightObj.AddComponent<BoxCollider2D>();
@@ -102,8 +116,8 @@ namespace Labyrinth.Items
                     var healObj = new GameObject("HealItem");
                     healObj.transform.position = new Vector3(pos.x, pos.y, 0);
                     var sr = healObj.AddComponent<SpriteRenderer>();
-                    sr.color = Color.green;
-                    sr.sprite = CreateSquareSprite();
+                    sr.sprite = healItemSprite != null ? healItemSprite : CreateSquareSprite();
+                    sr.color = Color.white;
                     sr.sortingOrder = 5;
                     healObj.transform.localScale = Vector3.one * 0.6f;
                     var healCollider = healObj.AddComponent<BoxCollider2D>();
@@ -131,8 +145,8 @@ namespace Labyrinth.Items
                     var explosiveObj = new GameObject("ExplosiveItem");
                     explosiveObj.transform.position = new Vector3(pos.x, pos.y, 0);
                     var sr = explosiveObj.AddComponent<SpriteRenderer>();
-                    sr.color = new Color(0.8f, 0.4f, 0f); // Orange
-                    sr.sprite = CreateSquareSprite();
+                    sr.sprite = explosiveItemSprite != null ? explosiveItemSprite : CreateSquareSprite();
+                    sr.color = Color.white;
                     sr.sortingOrder = 5;
                     explosiveObj.transform.localScale = Vector3.one * 0.6f;
                     var explosiveCollider = explosiveObj.AddComponent<BoxCollider2D>();
@@ -160,8 +174,8 @@ namespace Labyrinth.Items
                     var xpObj = new GameObject("XPItem");
                     xpObj.transform.position = new Vector3(pos.x, pos.y, 0);
                     var sr = xpObj.AddComponent<SpriteRenderer>();
-                    sr.color = new Color(0.6f, 0.2f, 0.8f); // Purple
-                    sr.sprite = CreateSquareSprite();
+                    sr.sprite = xpItemSprite != null ? xpItemSprite : CreateSquareSprite();
+                    sr.color = Color.white;
                     sr.sortingOrder = 5;
                     xpObj.transform.localScale = Vector3.one * 0.4f;
                     var xpCollider = xpObj.AddComponent<BoxCollider2D>();
@@ -171,6 +185,35 @@ namespace Labyrinth.Items
                     xpObj.AddComponent<Visibility.VisibilityAwareEntity>();
                 }
                 xpSpawned++;
+            }
+            spawned += xpSpawned;
+
+            // Spawn pebbles items
+            int pebblesSpawned = 0;
+            for (int i = spawned; i < validPositions.Count && pebblesSpawned < pebblesItemCount; i++)
+            {
+                var pos = validPositions[i];
+                if (pebblesItemPrefab != null)
+                {
+                    Instantiate(pebblesItemPrefab, new Vector3(pos.x, pos.y, 0), Quaternion.identity);
+                }
+                else
+                {
+                    // Create dynamically if no prefab
+                    var pebblesObj = new GameObject("PebblesItem");
+                    pebblesObj.transform.position = new Vector3(pos.x, pos.y, 0);
+                    var sr = pebblesObj.AddComponent<SpriteRenderer>();
+                    sr.sprite = pebblesItemSprite != null ? pebblesItemSprite : CreateSquareSprite();
+                    sr.color = Color.white;
+                    sr.sortingOrder = 5;
+                    pebblesObj.transform.localScale = Vector3.one * 0.6f;
+                    var pebblesCollider = pebblesObj.AddComponent<BoxCollider2D>();
+                    pebblesCollider.isTrigger = true;
+                    pebblesCollider.size = Vector2.one;
+                    pebblesObj.AddComponent<PebblesItem>();
+                    pebblesObj.AddComponent<Visibility.VisibilityAwareEntity>();
+                }
+                pebblesSpawned++;
             }
         }
 
