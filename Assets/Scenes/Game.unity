@@ -854,14 +854,14 @@ MonoBehaviour:
       m_Calls: []
   m_text: Something awakens...
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 0}
-  m_sharedMaterial: {fileID: 0}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4283190527
   m_fontColor: {r: 1, g: 0.3, b: 0.3, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -874,7 +874,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -905,7 +905,7 @@ MonoBehaviour:
   checkPaddingRequired: 0
   m_isRichText: 1
   m_parseCtrlCharacters: 1
-  m_isOrthographic: 0
+  m_isOrthographic: 1
   m_isCullingEnabled: 0
   m_horizontalMapping: 0
   m_verticalMapping: 0
@@ -2774,6 +2774,7 @@ GameObject:
   - component: {fileID: 2055192692}
   - component: {fileID: 2055192697}
   - component: {fileID: 2055192698}
+  - component: {fileID: 2055192699}
   m_Layer: 0
   m_Name: MazeRenderer
   m_TagString: Untagged
@@ -6913,7 +6914,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -8054,10 +8055,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29f0b27f656e24d34ac29be0d065c798, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wallPrefab: {fileID: 4770696993482068891, guid: 86f38886894154be387e5867ec18aa11, type: 3}
-  floorPrefab: {fileID: 6575437712313618649, guid: cc639f92627f34cde869eae2d74e9b1f, type: 3}
+  wallTilemap: {fileID: 0}
+  floorTilemap: {fileID: 0}
+  wallTiles:
+  - {fileID: 11400000, guid: 6247fbac21b8d49619aff039553471ae, type: 2}
+  - {fileID: 11400000, guid: 6bc98d560c6824678bfa32940f4cbbda, type: 2}
+  - {fileID: 11400000, guid: 55d347f39f36b484595c7a3d42724228, type: 2}
+  floorTiles:
+  - {fileID: 11400000, guid: 8bb16bfa30d7848aa9aea7ac8046707f, type: 2}
+  - {fileID: 11400000, guid: c39087deb95764ca9954e72db12b22de, type: 2}
+  - {fileID: 11400000, guid: 4a60ebd823bf14f6cb85ded235ddb525, type: 2}
+  wallColor: {r: 0.35, g: 0.24, b: 0.12, a: 1}
+  floorColor: {r: 0.4, g: 0.3, b: 0.2, a: 1}
   startMarkerPrefab: {fileID: 0}
   exitMarkerPrefab: {fileID: 0}
+  wallLayer: 8
 --- !u!4 &2055192696
 Transform:
   m_ObjectHideFlags: 0
@@ -8115,6 +8127,18 @@ MonoBehaviour:
   minTraps: 3
   maxTraps: 5
   bufferFromStartExit: 3
+--- !u!156049354 &2055192699
+Grid:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 735818239}
+  m_Enabled: 1
+  m_CellSize: {x: 1, y: 1, z: 1}
+  m_CellGap: {x: 0, y: 0, z: 0}
+  m_CellLayout: 0
+  m_CellSwizzle: 0
 --- !u!1 &2070172974
 GameObject:
   m_ObjectHideFlags: 0
