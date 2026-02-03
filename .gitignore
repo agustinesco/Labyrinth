@@ -13,6 +13,10 @@
 # Recordings
 [Rr]ecordings/
 
+# Screenshots
+[Ss]creenshots/
+Assets/Screenshots/
+
 # Asset meta data
 *.pidb.meta
 *.pdb.meta
