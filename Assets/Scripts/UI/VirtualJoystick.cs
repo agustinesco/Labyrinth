@@ -137,6 +137,12 @@ namespace Labyrinth.UI
                 }
                 touchZoneImage.raycastTarget = true;
                 touchZoneImage.color = new Color(0, 0, 0, 0);
+
+                // Add passthrough so clicks on other UI elements work
+                if (touchZone.GetComponent<RaycastPassthrough>() == null)
+                {
+                    touchZone.gameObject.AddComponent<RaycastPassthrough>();
+                }
             }
         }
 
