@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 266e2753279bb40c7b48e87db22779bb, type: 3}
+  m_Name: DefaultBestiaryData
+  m_EditorClassIdentifier: 
+  entries:
+  - enemyId: patrolling_guard
+    displayName: Patrolling Guard
+    icon: {fileID: 0}
+    description: A vigilant guard that patrols corridors in rectangular patterns.
+      Has a vision cone and will chase you if spotted.
+    behaviorTip: Watch their patrol pattern and slip past when they turn away. Hide
+      around corners when being chased.
+  - enemyId: blind_mole
+    displayName: Blind Mole
+    icon: {fileID: 0}
+    description: A subterranean creature that lurks at intersections. Completely
+      blind but can sense vibrations.
+    behaviorTip: Move slowly near them to avoid detection. They react to fast movements.
+  - enemyId: shadow_stalker
+    displayName: Shadow Stalker
+    icon: {fileID: 0}
+    description: A terrifying entity that creeps towards you when you're not looking.
+      Freezes completely when in your line of sight.
+    behaviorTip: Keep checking behind you! Back against walls when possible. Listen
+      for creeping sounds.

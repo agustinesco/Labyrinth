@@ -15,7 +15,9 @@ MonoBehaviour:
   maxPatrollingGuards: 6
   patrollingGuardSpawnChance: 0.5
   minCorridorLength: 15
-  maxBlindMoles: 5
+  maxBlindMoles: 0
   blindMoleSpawnChance: 0.5
+  maxShadowStalkers: 0
+  shadowStalkerSpawnChance: 0.4
   startExclusionRadius: 15
   exitExclusionRadius: 5

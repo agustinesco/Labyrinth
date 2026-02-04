@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 4678171650876722891}
   - component: {fileID: 1160317883517616573}
   - component: {fileID: 609690531654377629}
+  - component: {fileID: 5753622301198005898}
   m_Layer: 0
   m_Name: ShadowStalker
   m_TagString: Enemy
@@ -187,3 +188,18 @@ MonoBehaviour:
   visibilityThreshold: 0.1
   fadeInsteadOfHide: 0
   fadeSpeed: 5
+--- !u!114 &5753622301198005898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3662455487589520068}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c186d281ee01b4d90a75e3c0e6e569b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enemyId: shadow_stalker
+  visibilityCheckInterval: 0.25
+  visibilityThreshold: 0.1
