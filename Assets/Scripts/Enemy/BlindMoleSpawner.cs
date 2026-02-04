@@ -20,16 +20,27 @@ namespace Labyrinth.Enemy
 
         private MazeGrid _grid;
         private List<BlindMoleController> _spawnedMoles = new List<BlindMoleController>();
+        private Transform _container;
+
+        /// <summary>
+        /// Sets the container transform for spawned enemies.
+        /// </summary>
+        public void SetContainer(Transform container)
+        {
+            _container = container;
+        }
 
         /// <summary>
         /// Configures the spawner settings from an EnemySpawnConfig.
         /// </summary>
-        public void Configure(int maxMoles, float spawnChance, float startExclusionRadius, float exitExclusionRadius)
+        public void Configure(int maxMoles, float spawnChance, float startExclusionRadius, float exitExclusionRadius, GameObject prefab = null)
         {
             this.maxMoles = maxMoles;
             this.spawnChance = spawnChance;
             this.startExclusionRadius = startExclusionRadius;
             this.exitExclusionRadius = exitExclusionRadius;
+            if (prefab != null)
+                this.molePrefab = prefab;
         }
 
         /// <summary>
@@ -154,7 +165,8 @@ namespace Labyrinth.Enemy
                 moleObj = CreateMoleDynamically(worldPos);
             }
 
-            moleObj.transform.SetParent(transform);
+            if (_container != null)
+                moleObj.transform.SetParent(_container);
 
             var moleController = moleObj.GetComponent<BlindMoleController>();
             if (moleController != null)

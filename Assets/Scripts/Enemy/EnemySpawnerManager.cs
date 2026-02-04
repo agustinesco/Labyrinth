@@ -13,6 +13,10 @@ namespace Labyrinth.Enemy
         [SerializeField, Tooltip("Enemy spawn configuration asset")]
         private EnemySpawnConfig spawnConfig;
 
+        [Header("Container")]
+        [SerializeField, Tooltip("Parent transform for spawned enemies (optional)")]
+        private Transform enemyContainer;
+
         [Header("Spawners")]
         [SerializeField] private PatrollingGuardSpawner patrollingGuardSpawner;
         [SerializeField] private BlindMoleSpawner blindMoleSpawner;
@@ -41,6 +45,11 @@ namespace Labyrinth.Enemy
             // Clear existing enemies first
             ClearAllEnemies();
 
+            // Set container on spawners
+            if (patrollingGuardSpawner != null) patrollingGuardSpawner.SetContainer(enemyContainer);
+            if (blindMoleSpawner != null) blindMoleSpawner.SetContainer(enemyContainer);
+            if (shadowStalkerSpawner != null) shadowStalkerSpawner.SetContainer(enemyContainer);
+
             // Apply config to spawners and spawn
             SpawnPatrollingGuards(grid, startPos, exitPos, player);
             SpawnBlindMoles(grid);
@@ -57,12 +66,13 @@ namespace Labyrinth.Enemy
                 return;
             }
 
-            // Apply config settings to spawner
+            // Apply config settings to spawner (including prefab)
             patrollingGuardSpawner.Configure(
                 spawnConfig.MaxPatrollingGuards,
                 spawnConfig.PatrollingGuardSpawnChance,
                 spawnConfig.MinCorridorLength,
-                spawnConfig.StartExclusionRadius
+                spawnConfig.StartExclusionRadius,
+                spawnConfig.PatrollingGuardPrefab
             );
 
             patrollingGuardSpawner.SpawnGuards(grid, startPos, exitPos, player);
@@ -76,12 +86,13 @@ namespace Labyrinth.Enemy
                 return;
             }
 
-            // Apply config settings to spawner
+            // Apply config settings to spawner (including prefab)
             blindMoleSpawner.Configure(
                 spawnConfig.MaxBlindMoles,
                 spawnConfig.BlindMoleSpawnChance,
                 spawnConfig.StartExclusionRadius,
-                spawnConfig.ExitExclusionRadius
+                spawnConfig.ExitExclusionRadius,
+                spawnConfig.BlindMolePrefab
             );
 
             blindMoleSpawner.SpawnMoles(grid);
@@ -95,12 +106,13 @@ namespace Labyrinth.Enemy
                 return;
             }
 
-            // Apply config settings to spawner
+            // Apply config settings to spawner (including prefab)
             shadowStalkerSpawner.Configure(
                 spawnConfig.MaxShadowStalkers,
                 spawnConfig.ShadowStalkerSpawnChance,
                 spawnConfig.StartExclusionRadius,
-                spawnConfig.ExitExclusionRadius
+                spawnConfig.ExitExclusionRadius,
+                spawnConfig.ShadowStalkerPrefab
             );
 
             shadowStalkerSpawner.SpawnStalkers(grid, player);

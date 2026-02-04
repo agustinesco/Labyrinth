@@ -12,6 +12,10 @@ namespace Labyrinth.Traps
         [SerializeField] private int maxTraps = 5;
         [SerializeField] private int bufferFromStartExit = 3;
 
+        [Header("Container")]
+        [SerializeField, Tooltip("Parent transform for spawned traps (optional)")]
+        private Transform trapContainer;
+
         private struct HallwayPosition
         {
             public Vector2 Position;
@@ -133,6 +137,9 @@ namespace Labyrinth.Traps
                 collider.isTrigger = true;
                 collider.size = new Vector2(corridorWidth, corridorWidth);
             }
+
+            if (trapContainer != null)
+                trapObj.transform.SetParent(trapContainer);
 
             var tripwire = trapObj.GetComponent<TripwireTrap>();
             if (tripwire != null)

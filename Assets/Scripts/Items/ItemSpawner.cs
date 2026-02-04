@@ -10,6 +10,12 @@ namespace Labyrinth.Items
         [SerializeField, Tooltip("Item spawn configuration asset")]
         private ItemSpawnConfig spawnConfig;
 
+        [Header("Containers")]
+        [SerializeField, Tooltip("Parent transform for spawned items (optional)")]
+        private Transform itemContainer;
+        [SerializeField, Tooltip("Parent transform for spawned XP pickups (optional)")]
+        private Transform xpContainer;
+
         private List<GameObject> _spawnedItems = new List<GameObject>();
 
         /// <summary>
@@ -35,7 +41,7 @@ namespace Labyrinth.Items
             // Always spawn key at exit (independent of counts)
             if (spawnConfig.KeyItemPrefab != null)
             {
-                SpawnItem(spawnConfig.KeyItemPrefab, exitPos);
+                SpawnItem(spawnConfig.KeyItemPrefab, exitPos, itemContainer);
             }
 
             // Find spawn positions
@@ -67,7 +73,7 @@ namespace Labyrinth.Items
             {
                 for (int i = 0; i < spawnConfig.XpItemCount && posIndex < deadEndPositions.Count; i++, posIndex++)
                 {
-                    SpawnItem(spawnConfig.XpItemPrefab, deadEndPositions[posIndex]);
+                    SpawnItem(spawnConfig.XpItemPrefab, deadEndPositions[posIndex], xpContainer);
                 }
             }
 
@@ -77,7 +83,7 @@ namespace Labyrinth.Items
                 var randomItem = spawnConfig.GetRandomGeneralItem();
                 if (randomItem != null)
                 {
-                    SpawnItem(randomItem, deadEndPositions[posIndex]);
+                    SpawnItem(randomItem, deadEndPositions[posIndex], itemContainer);
                 }
             }
 
@@ -99,10 +105,12 @@ namespace Labyrinth.Items
             _spawnedItems.Clear();
         }
 
-        private void SpawnItem(GameObject prefab, Vector2 position)
+        private void SpawnItem(GameObject prefab, Vector2 position, Transform container = null)
         {
             if (prefab == null) return;
             var item = Instantiate(prefab, new Vector3(position.x, position.y, 0), Quaternion.identity);
+            if (container != null)
+                item.transform.SetParent(container);
             _spawnedItems.Add(item);
         }
 

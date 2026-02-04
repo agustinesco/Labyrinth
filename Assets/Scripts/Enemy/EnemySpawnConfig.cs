@@ -9,6 +9,16 @@ namespace Labyrinth.Enemy
     [CreateAssetMenu(fileName = "EnemySpawnConfig", menuName = "Labyrinth/Enemy Spawn Config", order = 3)]
     public class EnemySpawnConfig : ScriptableObject
     {
+        [Header("Enemy Prefabs")]
+        [SerializeField, Tooltip("Prefab for Patrolling Guard enemy")]
+        private GameObject patrollingGuardPrefab;
+
+        [SerializeField, Tooltip("Prefab for Blind Mole enemy")]
+        private GameObject blindMolePrefab;
+
+        [SerializeField, Tooltip("Prefab for Shadow Stalker enemy")]
+        private GameObject shadowStalkerPrefab;
+
         [Header("Patrolling Guards")]
         [SerializeField, Tooltip("Maximum number of patrolling guards to spawn")]
         [Min(0)] private int maxPatrollingGuards = 3;
@@ -39,6 +49,11 @@ namespace Labyrinth.Enemy
 
         [SerializeField, Tooltip("Minimum distance from exit position for spawning")]
         [Min(0f)] private float exitExclusionRadius = 5f;
+
+        // Prefab accessors
+        public GameObject PatrollingGuardPrefab => patrollingGuardPrefab;
+        public GameObject BlindMolePrefab => blindMolePrefab;
+        public GameObject ShadowStalkerPrefab => shadowStalkerPrefab;
 
         // Public accessors
         public int MaxPatrollingGuards => maxPatrollingGuards;

@@ -21,16 +21,27 @@ namespace Labyrinth.Enemy
         }
 
         private List<GameObject> _spawnedGuards = new List<GameObject>();
+        private Transform _container;
+
+        /// <summary>
+        /// Sets the container transform for spawned enemies.
+        /// </summary>
+        public void SetContainer(Transform container)
+        {
+            _container = container;
+        }
 
         /// <summary>
         /// Configures the spawner settings from an EnemySpawnConfig.
         /// </summary>
-        public void Configure(int maxGuards, float spawnChance, int minCorridorLength, float bufferFromStartExit)
+        public void Configure(int maxGuards, float spawnChance, int minCorridorLength, float bufferFromStartExit, GameObject prefab = null)
         {
             this.maxGuards = maxGuards;
             this.spawnChance = spawnChance;
             this.minCorridorLength = minCorridorLength;
             this.bufferFromStartExit = bufferFromStartExit;
+            if (prefab != null)
+                this.patrollingGuardPrefab = prefab;
         }
 
         public void SpawnGuards(MazeGrid grid, Vector2 startPos, Vector2 exitPos, Transform player)
@@ -250,6 +261,9 @@ namespace Labyrinth.Enemy
             {
                 guardObj = CreateGuardDynamically(spawnPos);
             }
+
+            if (_container != null)
+                guardObj.transform.SetParent(_container);
 
             _spawnedGuards.Add(guardObj);
 

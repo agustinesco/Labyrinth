@@ -29,16 +29,27 @@ namespace Labyrinth.Enemy
         private Transform _player;
         private List<ShadowStalkerController> _spawnedStalkers = new List<ShadowStalkerController>();
         private List<Vector2Int> _spawnedPositions = new List<Vector2Int>();
+        private Transform _container;
+
+        /// <summary>
+        /// Sets the container transform for spawned enemies.
+        /// </summary>
+        public void SetContainer(Transform container)
+        {
+            _container = container;
+        }
 
         /// <summary>
         /// Configures the spawner settings from an EnemySpawnConfig.
         /// </summary>
-        public void Configure(int maxStalkers, float spawnChance, float startExclusionRadius, float exitExclusionRadius)
+        public void Configure(int maxStalkers, float spawnChance, float startExclusionRadius, float exitExclusionRadius, GameObject prefab = null)
         {
             this.maxStalkers = maxStalkers;
             this.spawnChance = spawnChance;
             this.startExclusionRadius = startExclusionRadius;
             this.exitExclusionRadius = exitExclusionRadius;
+            if (prefab != null)
+                this.stalkerPrefab = prefab;
         }
 
         /// <summary>
@@ -209,7 +220,8 @@ namespace Labyrinth.Enemy
                 stalkerObj = CreateStalkerDynamically(worldPos);
             }
 
-            stalkerObj.transform.SetParent(transform);
+            if (_container != null)
+                stalkerObj.transform.SetParent(_container);
             _spawnedPositions.Add(gridPos);
 
             var controller = stalkerObj.GetComponent<ShadowStalkerController>();
