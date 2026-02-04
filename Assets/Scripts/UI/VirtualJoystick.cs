@@ -40,6 +40,7 @@ namespace Labyrinth.UI
         private Vector2 _defaultPosition;
         private bool _isActive;
         private CanvasGroup _backgroundCanvasGroup;
+        private RectTransform _originalBackgroundParent;
 
         /// <summary>
         /// Returns the normalized input vector. Returns zero if within dead zone.
@@ -136,34 +137,31 @@ namespace Labyrinth.UI
                 }
                 touchZoneImage.raycastTarget = true;
                 touchZoneImage.color = new Color(0, 0, 0, 0);
-
-                // Configure touch zone size and position (bottom-left of screen)
-                touchZone.anchorMin = new Vector2(0, 0);
-                touchZone.anchorMax = new Vector2(touchZoneWidthPercent, touchZoneHeightPercent);
-                touchZone.offsetMin = Vector2.zero;
-                touchZone.offsetMax = Vector2.zero;
-                touchZone.pivot = new Vector2(0, 0);
             }
         }
 
         private void CreateTouchZone()
         {
-            // Create touch zone as parent of the joystick
+            // Create touch zone as a sibling (not parent) to receive touch events
             GameObject touchZoneObj = new GameObject("JoystickTouchZone");
             touchZone = touchZoneObj.AddComponent<RectTransform>();
 
-            // Parent to canvas
+            // Parent to canvas at same level as joystick
             touchZone.SetParent(_canvas.transform, false);
             touchZone.SetAsFirstSibling(); // Put behind other UI
 
-            // Reparent joystick background to touch zone
-            if (background != null)
-            {
-                background.SetParent(touchZone, true);
-            }
+            // Configure touch zone anchors and size (will be set in SetupTouchZone)
+            touchZone.anchorMin = new Vector2(0, 0);
+            touchZone.anchorMax = new Vector2(touchZoneWidthPercent, touchZoneHeightPercent);
+            touchZone.offsetMin = Vector2.zero;
+            touchZone.offsetMax = Vector2.zero;
+            touchZone.pivot = new Vector2(0, 0);
+
+            // DON'T reparent the background - keep it where it is in the hierarchy
+            // Just store the original parent for position calculations
+            _originalBackgroundParent = background != null ? background.parent as RectTransform : null;
 
             // Add the event trigger component to touch zone
-            // The VirtualJoystick component stays on the original object but we need events from touch zone
             var eventTrigger = touchZoneObj.AddComponent<EventTrigger>();
 
             // Forward pointer events to this joystick
@@ -191,12 +189,16 @@ namespace Labyrinth.UI
         {
             _isActive = true;
 
-            if (dynamicOrigin && background != null && touchZone != null)
+            if (dynamicOrigin && background != null)
             {
-                // Move joystick to touch position within touch zone
+                // Get the parent RectTransform for coordinate conversion
+                RectTransform parentRect = background.parent as RectTransform;
+                if (parentRect == null) parentRect = _canvasRect;
+
+                // Convert screen position to local position in background's parent
                 Vector2 localPoint;
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    touchZone,
+                    parentRect,
                     eventData.position,
                     eventData.pressEventCamera,
                     out localPoint
@@ -204,14 +206,14 @@ namespace Labyrinth.UI
 
                 // Clamp position to keep joystick fully visible with padding
                 float halfSize = background.sizeDelta.x / 2f;
-                Vector2 zoneSize = touchZone.rect.size;
+                Vector2 parentSize = parentRect.rect.size;
 
+                // Calculate bounds based on anchors (assuming bottom-left anchored)
                 float minX = halfSize + edgePadding;
-                float maxX = zoneSize.x - halfSize - edgePadding;
+                float maxX = parentSize.x * touchZoneWidthPercent - halfSize - edgePadding;
                 float minY = halfSize + edgePadding;
-                float maxY = zoneSize.y - halfSize - edgePadding;
+                float maxY = parentSize.y * touchZoneHeightPercent - halfSize - edgePadding;
 
-                // Convert from center-based to corner-based coordinates (touch zone pivot is 0,0)
                 localPoint.x = Mathf.Clamp(localPoint.x, minX, maxX);
                 localPoint.y = Mathf.Clamp(localPoint.y, minY, maxY);
 
