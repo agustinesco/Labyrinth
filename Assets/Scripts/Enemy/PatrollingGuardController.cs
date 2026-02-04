@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Labyrinth.Maze;
 using Labyrinth.Player;
 using Labyrinth.Core;
+using Labyrinth.Items;
 
 namespace Labyrinth.Enemy
 {
@@ -393,8 +394,15 @@ namespace Labyrinth.Enemy
             Vector2 toPlayer = playerPos - guardPos;
             float distance = toPlayer.magnitude;
 
-            // Check range
-            if (distance > visionRange)
+            // Apply Shadow Blend detection reduction
+            float effectiveVisionRange = visionRange;
+            if (ShadowBlendManager.Instance != null)
+            {
+                effectiveVisionRange *= ShadowBlendManager.Instance.DetectionRangeMultiplier;
+            }
+
+            // Check range (with Shadow Blend modifier)
+            if (distance > effectiveVisionRange)
                 return false;
 
             // Check angle within cone
@@ -415,6 +423,13 @@ namespace Labyrinth.Enemy
             Vector2 currentPos = transform.position;
             Vector2 direction = (target - currentPos).normalized;
 
+            // Apply caltrops slow effect if present
+            var slowEffect = GetComponent<CaltropsSlowEffect>();
+            if (slowEffect != null && slowEffect.IsSlowed)
+            {
+                speed *= slowEffect.GetSpeedMultiplier();
+            }
+
             transform.position = Vector2.MoveTowards(currentPos, target, speed * Time.deltaTime);
 
             // Update facing direction while moving
@@ -428,6 +443,13 @@ namespace Labyrinth.Enemy
         {
             if (_currentPath == null || _pathIndex >= _currentPath.Count)
                 return;
+
+            // Apply caltrops slow effect if present
+            var slowEffect = GetComponent<CaltropsSlowEffect>();
+            if (slowEffect != null && slowEffect.IsSlowed)
+            {
+                speed *= slowEffect.GetSpeedMultiplier();
+            }
 
             Vector3 targetPosition = new Vector3(_currentPath[_pathIndex].x, _currentPath[_pathIndex].y, 0);
 

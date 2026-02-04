@@ -7,15 +7,34 @@ namespace Labyrinth.Player
     public class PlayerController : MonoBehaviour
     {
         [SerializeField] private float baseSpeed = 5f;
+        [SerializeField] private float wallDetectionDistance = 1.2f;
+        [SerializeField] private LayerMask wallLayer;
 
         private Rigidbody2D _rb;
         private Vector2 _moveInput;
         private Vector2 _facingDirection = Vector2.right;
         private float _speedBonus;
         private float _speedBoostTimer;
+        private bool _isNearWall;
 
-        public float CurrentSpeed => (baseSpeed + _speedBonus + (PlayerLevelSystem.Instance?.PermanentSpeedBonus ?? 0f)) * (NoClipManager.Instance?.SpeedMultiplier ?? 1f);
+        public float CurrentSpeed
+        {
+            get
+            {
+                float baseTotal = baseSpeed + _speedBonus + (PlayerLevelSystem.Instance?.PermanentSpeedBonus ?? 0f);
+
+                // Apply Wall Hugger bonus if near a wall
+                if (_isNearWall && PlayerLevelSystem.Instance != null)
+                {
+                    float wallHuggerBonus = PlayerLevelSystem.Instance.WallHuggerSpeedBonus;
+                    baseTotal *= (1f + wallHuggerBonus);
+                }
+
+                return baseTotal * (NoClipManager.Instance?.SpeedMultiplier ?? 1f);
+            }
+        }
         public Vector2 FacingDirection => _facingDirection;
+        public bool IsNearWall => _isNearWall;
 
         private void Awake()
         {
@@ -32,6 +51,27 @@ namespace Labyrinth.Player
                 if (_speedBoostTimer <= 0)
                 {
                     _speedBonus = 0;
+                }
+            }
+
+            // Check for nearby walls (Wall Hugger upgrade)
+            CheckNearbyWalls();
+        }
+
+        private void CheckNearbyWalls()
+        {
+            // Cast rays in 4 cardinal directions to detect walls
+            Vector2 pos = transform.position;
+            Vector2[] directions = { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
+
+            _isNearWall = false;
+            foreach (var dir in directions)
+            {
+                RaycastHit2D hit = Physics2D.Raycast(pos, dir, wallDetectionDistance, wallLayer);
+                if (hit.collider != null)
+                {
+                    _isNearWall = true;
+                    break;
                 }
             }
         }

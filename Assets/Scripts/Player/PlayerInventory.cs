@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Labyrinth.Items;
 using Labyrinth.Visibility;
+using Labyrinth.Leveling;
 
 namespace Labyrinth.Player
 {
@@ -11,12 +12,13 @@ namespace Labyrinth.Player
     /// </summary>
     public class PlayerInventory : MonoBehaviour
     {
-        public const int MaxSlots = 3;
+        public const int BaseMaxSlots = 3;
 
         private List<InventoryItem> _items = new List<InventoryItem>();
 
         public event Action OnInventoryChanged;
 
+        public int MaxSlots => BaseMaxSlots + (PlayerLevelSystem.Instance?.ExtraInventorySlots ?? 0);
         public IReadOnlyList<InventoryItem> Items => _items;
         public int ItemCount => _items.Count;
         public bool IsFull => _items.Count >= MaxSlots;
@@ -121,6 +123,19 @@ namespace Labyrinth.Player
 
                 case ItemType.Wisp:
                     SpawnWispOrb();
+                    break;
+
+                case ItemType.Caltrops:
+                    // Scatter caltrops at player's position
+                    // EffectValue = speed multiplier, Duration = slow duration
+                    // Default player damage is 1
+                    Labyrinth.Items.PlacedCaltrops.SpawnAt(transform.position, item.EffectValue, item.Duration, 1);
+                    break;
+
+                case ItemType.EchoStone:
+                    // Create echo pulse to reveal enemies
+                    // EffectValue = reveal radius, Duration = reveal duration
+                    Labyrinth.Items.EchoPulse.CreateAt(transform.position, item.EffectValue, item.Duration);
                     break;
             }
         }

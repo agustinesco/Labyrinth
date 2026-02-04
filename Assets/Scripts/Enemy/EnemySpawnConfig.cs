@@ -26,6 +26,13 @@ namespace Labyrinth.Enemy
         [SerializeField, Tooltip("Chance to spawn a mole at each valid intersection (0-1)")]
         [Range(0f, 1f)] private float blindMoleSpawnChance = 0.5f;
 
+        [Header("Shadow Stalkers")]
+        [SerializeField, Tooltip("Maximum number of shadow stalkers to spawn")]
+        [Min(0)] private int maxShadowStalkers = 2;
+
+        [SerializeField, Tooltip("Chance to spawn a stalker at each valid location (0-1)")]
+        [Range(0f, 1f)] private float shadowStalkerSpawnChance = 0.4f;
+
         [Header("Exclusion Zones")]
         [SerializeField, Tooltip("Minimum distance from start position for spawning")]
         [Min(0f)] private float startExclusionRadius = 8f;
@@ -40,6 +47,9 @@ namespace Labyrinth.Enemy
 
         public int MaxBlindMoles => maxBlindMoles;
         public float BlindMoleSpawnChance => blindMoleSpawnChance;
+
+        public int MaxShadowStalkers => maxShadowStalkers;
+        public float ShadowStalkerSpawnChance => shadowStalkerSpawnChance;
 
         public float StartExclusionRadius => startExclusionRadius;
         public float ExitExclusionRadius => exitExclusionRadius;

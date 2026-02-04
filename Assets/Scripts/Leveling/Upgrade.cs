@@ -6,7 +6,10 @@ namespace Labyrinth.Leveling
     {
         Speed,
         Vision,
-        Heal
+        Heal,
+        WallHugger,
+        ShadowBlend,
+        DeepPockets
     }
 
     public class Upgrade

@@ -21,6 +21,7 @@ namespace Labyrinth.UI
         [SerializeField] private Button xpButton;
         [SerializeField] private Button noClipButton;
         [SerializeField] private Button revealMapButton;
+        [SerializeField] private Button levelUpButton;
         [SerializeField] private int xpAmountPerClick = 1;
 
         [Header("Item Prefabs")]
@@ -72,6 +73,9 @@ namespace Labyrinth.UI
 
             if (revealMapButton != null)
                 revealMapButton.onClick.AddListener(RevealMap);
+
+            if (levelUpButton != null)
+                levelUpButton.onClick.AddListener(ForceLevelUp);
 
             // Start with menu closed
             if (menuPanel != null)
@@ -156,6 +160,15 @@ namespace Labyrinth.UI
             }
         }
 
+        private void ForceLevelUp()
+        {
+            if (PlayerLevelSystem.Instance != null)
+            {
+                int xpNeeded = PlayerLevelSystem.Instance.XPForNextLevel - PlayerLevelSystem.Instance.CurrentXP;
+                PlayerLevelSystem.Instance.AddXP(xpNeeded);
+            }
+        }
+
         private void OnDestroy()
         {
             if (toggleButton != null)
@@ -180,6 +193,8 @@ namespace Labyrinth.UI
                 noClipButton.onClick.RemoveAllListeners();
             if (revealMapButton != null)
                 revealMapButton.onClick.RemoveAllListeners();
+            if (levelUpButton != null)
+                levelUpButton.onClick.RemoveAllListeners();
         }
     }
 }

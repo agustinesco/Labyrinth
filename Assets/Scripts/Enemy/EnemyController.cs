@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Labyrinth.Maze;
 using Labyrinth.Player;
 using Labyrinth.Core;
+using Labyrinth.Items;
 
 namespace Labyrinth.Enemy
 {
@@ -14,6 +15,7 @@ namespace Labyrinth.Enemy
         [SerializeField] private float pathRecalculateInterval = 0.5f;
         [SerializeField] private float attackCooldown = 2f;
         [SerializeField] private int damage = 1;
+        [SerializeField] private float detectionRange = 8f;
 
         private Transform _target;
         private MazeGrid _grid;
@@ -49,6 +51,15 @@ namespace Labyrinth.Enemy
 
             if (Player.InvisibilityManager.Instance != null && Player.InvisibilityManager.Instance.IsInvisible)
                 return;
+
+            // Shadow Blend reduces detection range
+            if (Player.ShadowBlendManager.Instance != null && Player.ShadowBlendManager.Instance.IsBlended)
+            {
+                float effectiveRange = detectionRange * Player.ShadowBlendManager.Instance.DetectionRangeMultiplier;
+                float distanceToPlayer = Vector2.Distance(transform.position, _target.position);
+                if (distanceToPlayer > effectiveRange)
+                    return; // Can't detect blended player at this distance
+            }
 
             _chaseTimer += Time.deltaTime;
             _attackTimer -= Time.deltaTime;
@@ -95,6 +106,13 @@ namespace Labyrinth.Enemy
 
             Vector3 targetPosition = new Vector3(_currentPath[_pathIndex].x, _currentPath[_pathIndex].y, 0);
             float speed = _chaseTimer > speedIncreaseAfter ? increasedSpeed : baseSpeed;
+
+            // Apply caltrops slow effect if present
+            var slowEffect = GetComponent<CaltropsSlowEffect>();
+            if (slowEffect != null && slowEffect.IsSlowed)
+            {
+                speed *= slowEffect.GetSpeedMultiplier();
+            }
 
             transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
 

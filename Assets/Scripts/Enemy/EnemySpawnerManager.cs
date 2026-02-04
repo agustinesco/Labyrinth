@@ -16,6 +16,7 @@ namespace Labyrinth.Enemy
         [Header("Spawners")]
         [SerializeField] private PatrollingGuardSpawner patrollingGuardSpawner;
         [SerializeField] private BlindMoleSpawner blindMoleSpawner;
+        [SerializeField] private ShadowStalkerSpawner shadowStalkerSpawner;
 
         /// <summary>
         /// Gets or sets the spawn configuration.
@@ -43,8 +44,9 @@ namespace Labyrinth.Enemy
             // Apply config to spawners and spawn
             SpawnPatrollingGuards(grid, startPos, exitPos, player);
             SpawnBlindMoles(grid);
+            SpawnShadowStalkers(grid, player);
 
-            Debug.Log($"[EnemySpawnerManager] Spawned enemies - Guards: {spawnConfig.MaxPatrollingGuards} max, Moles: {spawnConfig.MaxBlindMoles} max");
+            Debug.Log($"[EnemySpawnerManager] Spawned enemies - Guards: {spawnConfig.MaxPatrollingGuards} max, Moles: {spawnConfig.MaxBlindMoles} max, Stalkers: {spawnConfig.MaxShadowStalkers} max");
         }
 
         private void SpawnPatrollingGuards(MazeGrid grid, Vector2 startPos, Vector2 exitPos, Transform player)
@@ -85,6 +87,25 @@ namespace Labyrinth.Enemy
             blindMoleSpawner.SpawnMoles(grid);
         }
 
+        private void SpawnShadowStalkers(MazeGrid grid, Transform player)
+        {
+            if (shadowStalkerSpawner == null)
+            {
+                Debug.LogWarning("[EnemySpawnerManager] No ShadowStalkerSpawner assigned!");
+                return;
+            }
+
+            // Apply config settings to spawner
+            shadowStalkerSpawner.Configure(
+                spawnConfig.MaxShadowStalkers,
+                spawnConfig.ShadowStalkerSpawnChance,
+                spawnConfig.StartExclusionRadius,
+                spawnConfig.ExitExclusionRadius
+            );
+
+            shadowStalkerSpawner.SpawnStalkers(grid, player);
+        }
+
         /// <summary>
         /// Clears all spawned enemies.
         /// </summary>
@@ -98,6 +119,11 @@ namespace Labyrinth.Enemy
             if (blindMoleSpawner != null)
             {
                 blindMoleSpawner.ClearMoles();
+            }
+
+            if (shadowStalkerSpawner != null)
+            {
+                shadowStalkerSpawner.ClearStalkers();
             }
         }
 

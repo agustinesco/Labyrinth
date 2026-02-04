@@ -11,12 +11,18 @@ namespace Labyrinth.Leveling
         private int _currentXP = 0;
         private float _permanentSpeedBonus = 0f;
         private float _permanentVisionBonus = 0f;
+        private float _wallHuggerSpeedBonus = 0f;
+        private int _shadowBlendLevel = 0;
+        private int _extraInventorySlots = 0;
 
         public int CurrentLevel => _currentLevel;
         public int CurrentXP => _currentXP;
         public int XPForNextLevel => _currentLevel * 5;
         public float PermanentSpeedBonus => _permanentSpeedBonus;
         public float PermanentVisionBonus => _permanentVisionBonus;
+        public float WallHuggerSpeedBonus => _wallHuggerSpeedBonus;
+        public int ShadowBlendLevel => _shadowBlendLevel;
+        public int ExtraInventorySlots => _extraInventorySlots;
 
         public event Action<int, int> OnXPChanged; // (currentXP, xpForNextLevel)
         public event Action<int> OnLevelUp; // (newLevel)
@@ -62,12 +68,30 @@ namespace Labyrinth.Leveling
             _permanentVisionBonus += bonus;
         }
 
+        public void ApplyWallHuggerBonus(float bonus)
+        {
+            _wallHuggerSpeedBonus += bonus;
+        }
+
+        public void ApplyShadowBlendUpgrade()
+        {
+            _shadowBlendLevel++;
+        }
+
+        public void ApplyDeepPocketsUpgrade()
+        {
+            _extraInventorySlots++;
+        }
+
         public void ResetLevel()
         {
             _currentLevel = 1;
             _currentXP = 0;
             _permanentSpeedBonus = 0f;
             _permanentVisionBonus = 0f;
+            _wallHuggerSpeedBonus = 0f;
+            _shadowBlendLevel = 0;
+            _extraInventorySlots = 0;
             OnXPChanged?.Invoke(_currentXP, XPForNextLevel);
         }
     }

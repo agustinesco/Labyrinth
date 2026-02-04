@@ -54,6 +54,21 @@ namespace Labyrinth.Leveling
                         Debug.Log($"Applied Heal upgrade: +{effectValue} HP");
                     }
                     break;
+
+                case UpgradeType.WallHugger:
+                    levelSystem.ApplyWallHuggerBonus(effectValue);
+                    Debug.Log($"Applied Wall Hugger upgrade: +{effectValue * 100}% speed near walls");
+                    break;
+
+                case UpgradeType.ShadowBlend:
+                    levelSystem.ApplyShadowBlendUpgrade();
+                    Debug.Log($"Applied Shadow Blend upgrade: Level {levelSystem.ShadowBlendLevel}");
+                    break;
+
+                case UpgradeType.DeepPockets:
+                    levelSystem.ApplyDeepPocketsUpgrade();
+                    Debug.Log($"Applied Deep Pockets upgrade: +1 inventory slot (total extra: {levelSystem.ExtraInventorySlots})");
+                    break;
             }
         }
     }
