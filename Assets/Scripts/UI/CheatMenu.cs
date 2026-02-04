@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using Labyrinth.Items;
 using Labyrinth.Player;
 using Labyrinth.Leveling;
+using Labyrinth.Visibility;
 
 namespace Labyrinth.UI
 {
@@ -19,6 +20,7 @@ namespace Labyrinth.UI
         [SerializeField] private Button wispItemButton;
         [SerializeField] private Button xpButton;
         [SerializeField] private Button noClipButton;
+        [SerializeField] private Button revealMapButton;
         [SerializeField] private int xpAmountPerClick = 1;
 
         [Header("Item Prefabs")]
@@ -67,6 +69,9 @@ namespace Labyrinth.UI
 
             if (noClipButton != null)
                 noClipButton.onClick.AddListener(ToggleNoClip);
+
+            if (revealMapButton != null)
+                revealMapButton.onClick.AddListener(RevealMap);
 
             // Start with menu closed
             if (menuPanel != null)
@@ -143,6 +148,14 @@ namespace Labyrinth.UI
             }
         }
 
+        private void RevealMap()
+        {
+            if (FogOfWarManager.Instance != null)
+            {
+                FogOfWarManager.Instance.RevealEntireMap();
+            }
+        }
+
         private void OnDestroy()
         {
             if (toggleButton != null)
@@ -165,6 +178,8 @@ namespace Labyrinth.UI
                 xpButton.onClick.RemoveAllListeners();
             if (noClipButton != null)
                 noClipButton.onClick.RemoveAllListeners();
+            if (revealMapButton != null)
+                revealMapButton.onClick.RemoveAllListeners();
         }
     }
 }

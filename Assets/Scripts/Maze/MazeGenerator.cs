@@ -83,6 +83,13 @@ namespace Labyrinth.Maze
             var exitCell = _grid.GetCell(_roomCenterX, _roomCenterY);
             exitCell.IsExit = true;
 
+            // Validate that key room is reachable from start
+            if (!ValidateKeyRoomReachability(startX, startY))
+            {
+                Debug.LogWarning("[MazeGenerator] Key room not reachable! Forcing connection...");
+                ForceConnectionToKeyRoom(startX, startY);
+            }
+
             return _grid;
         }
 
@@ -418,6 +425,152 @@ namespace Labyrinth.Maze
             }
 
             return furthest;
+        }
+
+        /// <summary>
+        /// Validates that the key room is reachable from the start position using BFS.
+        /// </summary>
+        /// <param name="startX">Start X position</param>
+        /// <param name="startY">Start Y position</param>
+        /// <returns>True if the key room is reachable, false otherwise</returns>
+        private bool ValidateKeyRoomReachability(int startX, int startY)
+        {
+            var visited = new bool[_width, _height];
+            var queue = new Queue<(int x, int y)>();
+
+            queue.Enqueue((startX, startY));
+            visited[startX, startY] = true;
+
+            while (queue.Count > 0)
+            {
+                var (cx, cy) = queue.Dequeue();
+
+                // Check if we reached any part of the key room
+                if (_grid.GetCell(cx, cy).IsKeyRoom)
+                {
+                    return true;
+                }
+
+                // Explore neighbors
+                foreach (var (dx, dy) in new[] { (0, 1), (1, 0), (0, -1), (-1, 0) })
+                {
+                    int nx = cx + dx;
+                    int ny = cy + dy;
+
+                    if (_grid.IsInBounds(nx, ny) &&
+                        !visited[nx, ny] &&
+                        !_grid.GetCell(nx, ny).IsWall)
+                    {
+                        visited[nx, ny] = true;
+                        queue.Enqueue((nx, ny));
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Forces a connection from the start position to the key room by carving a direct path.
+        /// Uses BFS to find the closest reachable cell to the key room, then carves to it.
+        /// </summary>
+        /// <param name="startX">Start X position</param>
+        /// <param name="startY">Start Y position</param>
+        private void ForceConnectionToKeyRoom(int startX, int startY)
+        {
+            // Find the closest point from the maze to the key room using BFS
+            var visited = new bool[_width, _height];
+            var parent = new (int x, int y)?[_width, _height];
+            var queue = new Queue<(int x, int y)>();
+
+            queue.Enqueue((startX, startY));
+            visited[startX, startY] = true;
+
+            (int x, int y) closestToRoom = (startX, startY);
+            float minDistanceToRoom = float.MaxValue;
+
+            // Find the closest walkable cell to the key room
+            while (queue.Count > 0)
+            {
+                var (cx, cy) = queue.Dequeue();
+
+                // Calculate distance to room center
+                float distToRoom = Mathf.Sqrt(
+                    Mathf.Pow(cx - _roomCenterX, 2) +
+                    Mathf.Pow(cy - _roomCenterY, 2)
+                );
+
+                if (distToRoom < minDistanceToRoom)
+                {
+                    minDistanceToRoom = distToRoom;
+                    closestToRoom = (cx, cy);
+                }
+
+                // Explore neighbors
+                foreach (var (dx, dy) in new[] { (0, 1), (1, 0), (0, -1), (-1, 0) })
+                {
+                    int nx = cx + dx;
+                    int ny = cy + dy;
+
+                    if (_grid.IsInBounds(nx, ny) &&
+                        !visited[nx, ny] &&
+                        !_grid.GetCell(nx, ny).IsWall)
+                    {
+                        visited[nx, ny] = true;
+                        queue.Enqueue((nx, ny));
+                    }
+                }
+            }
+
+            // Carve a direct path from closest point to the room
+            int x = closestToRoom.x;
+            int y = closestToRoom.y;
+
+            // Find the nearest room entrance point
+            int roomHalf = RoomSize / 2;
+            int targetX, targetY;
+
+            // Determine which side of the room to connect to
+            if (Mathf.Abs(x - _roomCenterX) > Mathf.Abs(y - _roomCenterY))
+            {
+                // Connect horizontally
+                targetX = x < _roomCenterX ? _roomCenterX - roomHalf : _roomCenterX + roomHalf;
+                targetY = _roomCenterY;
+            }
+            else
+            {
+                // Connect vertically
+                targetX = _roomCenterX;
+                targetY = y < _roomCenterY ? _roomCenterY - roomHalf : _roomCenterY + roomHalf;
+            }
+
+            // Carve L-shaped path: first horizontal, then vertical
+            int currentX = x;
+            int currentY = y;
+
+            // Move horizontally first
+            int stepX = targetX > currentX ? 1 : -1;
+            while (currentX != targetX)
+            {
+                currentX += stepX;
+                if (_grid.IsInBounds(currentX, currentY))
+                {
+                    CarveArea(currentX, currentY);
+                }
+            }
+
+            // Then move vertically
+            int stepY = targetY > currentY ? 1 : -1;
+            while (currentY != targetY)
+            {
+                currentY += stepY;
+                if (_grid.IsInBounds(currentX, currentY))
+                {
+                    CarveArea(currentX, currentY);
+                }
+            }
+
+            Debug.Log($"[MazeGenerator] Forced connection carved from ({closestToRoom.x}, {closestToRoom.y}) to room at ({targetX}, {targetY})");
         }
     }
 }

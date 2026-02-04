@@ -6,55 +6,43 @@ namespace Labyrinth.Items
 {
     public class ItemSpawner : MonoBehaviour
     {
-        [Header("Item Prefabs")]
-        [SerializeField] private GameObject keyItemPrefab;
-        [SerializeField] private GameObject speedItemPrefab;
-        [SerializeField] private GameObject lightSourcePrefab;
-        [SerializeField] private GameObject healItemPrefab;
-        [SerializeField] private GameObject explosiveItemPrefab;
-        [SerializeField] private GameObject xpItemPrefab;
-        [SerializeField] private GameObject pebblesItemPrefab;
-        [SerializeField] private GameObject invisibilityItemPrefab;
-        [SerializeField] private GameObject wispItemPrefab;
+        [Header("Configuration")]
+        [SerializeField, Tooltip("Item spawn configuration asset")]
+        private ItemSpawnConfig spawnConfig;
 
-        [Header("Spawn Counts")]
-        [SerializeField] private int speedItemCount = 6;
-        [SerializeField] private int lightSourceCount = 6;
-        [SerializeField] private int healItemCount = 4;
-        [SerializeField] private int explosiveItemCount = 4;
-        [SerializeField] private int xpItemCount = 45;
-        [SerializeField] private int pebblesItemCount = 4;
-        [SerializeField] private int invisibilityItemCount = 2;
-        [SerializeField] private int wispItemCount = 2;
+        private List<GameObject> _spawnedItems = new List<GameObject>();
 
-        [Header("Active Items (controls spawning)")]
-        [SerializeField] private bool speedItemActive = true;
-        [SerializeField] private bool lightSourceActive = true;
-        [SerializeField] private bool healItemActive = true;
-        [SerializeField] private bool explosiveItemActive = false;
-        [SerializeField] private bool xpItemActive = true;
-        [SerializeField] private bool pebblesItemActive = false;
-        [SerializeField] private bool invisibilityItemActive = true;
-        [SerializeField] private bool wispItemActive = true;
+        /// <summary>
+        /// Gets or sets the spawn configuration.
+        /// </summary>
+        public ItemSpawnConfig SpawnConfig
+        {
+            get => spawnConfig;
+            set => spawnConfig = value;
+        }
 
         public void SpawnItems(MazeGrid grid, Vector2 startPos, Vector2 exitPos)
         {
-            // Spawn key at exit
-            SpawnItem(keyItemPrefab, exitPos);
+            if (spawnConfig == null)
+            {
+                Debug.LogError("[ItemSpawner] No ItemSpawnConfig assigned!");
+                return;
+            }
 
-            // Find dead-end positions (corridor endings with only one connection)
+            // Clear any previously spawned items
+            ClearSpawnedItems();
+
+            // Always spawn key at exit (independent of counts)
+            if (spawnConfig.KeyItemPrefab != null)
+            {
+                SpawnItem(spawnConfig.KeyItemPrefab, exitPos);
+            }
+
+            // Find spawn positions
             var deadEndPositions = FindDeadEnds(grid, startPos, exitPos);
 
-            // Calculate total items needed (only count active items)
-            int totalItemsNeeded = 0;
-            if (speedItemActive) totalItemsNeeded += speedItemCount;
-            if (lightSourceActive) totalItemsNeeded += lightSourceCount;
-            if (healItemActive) totalItemsNeeded += healItemCount;
-            if (explosiveItemActive) totalItemsNeeded += explosiveItemCount;
-            if (xpItemActive) totalItemsNeeded += xpItemCount;
-            if (pebblesItemActive) totalItemsNeeded += pebblesItemCount;
-            if (invisibilityItemActive) totalItemsNeeded += invisibilityItemCount;
-            if (wispItemActive) totalItemsNeeded += wispItemCount;
+            // Calculate total items needed (XP + general)
+            int totalItemsNeeded = spawnConfig.GetTotalItemCount();
 
             // If not enough dead ends, add regular floor positions as fallback
             if (deadEndPositions.Count < totalItemsNeeded)
@@ -62,7 +50,6 @@ namespace Labyrinth.Items
                 var floorPositions = FindFloorPositions(grid, startPos, exitPos, deadEndPositions);
                 ShuffleList(floorPositions);
 
-                // Add floor positions until we have enough
                 int needed = totalItemsNeeded - deadEndPositions.Count;
                 for (int i = 0; i < floorPositions.Count && i < needed; i++)
                 {
@@ -70,95 +57,57 @@ namespace Labyrinth.Items
                 }
             }
 
-            // Shuffle positions
+            // Shuffle positions for random placement
             ShuffleList(deadEndPositions);
 
             int posIndex = 0;
 
-            // Spawn speed items
-            if (speedItemActive)
-            {
-                for (int i = 0; i < speedItemCount && posIndex < deadEndPositions.Count; i++, posIndex++)
-                {
-                    SpawnItem(speedItemPrefab, deadEndPositions[posIndex]);
-                }
-            }
-
-            // Spawn light sources
-            if (lightSourceActive)
-            {
-                for (int i = 0; i < lightSourceCount && posIndex < deadEndPositions.Count; i++, posIndex++)
-                {
-                    SpawnItem(lightSourcePrefab, deadEndPositions[posIndex]);
-                }
-            }
-
-            // Spawn heal items
-            if (healItemActive)
-            {
-                for (int i = 0; i < healItemCount && posIndex < deadEndPositions.Count; i++, posIndex++)
-                {
-                    SpawnItem(healItemPrefab, deadEndPositions[posIndex]);
-                }
-            }
-
-            // Spawn explosive items
-            if (explosiveItemActive)
-            {
-                for (int i = 0; i < explosiveItemCount && posIndex < deadEndPositions.Count; i++, posIndex++)
-                {
-                    SpawnItem(explosiveItemPrefab, deadEndPositions[posIndex]);
-                }
-            }
-
             // Spawn XP items
-            if (xpItemActive)
+            if (spawnConfig.XpItemPrefab != null)
             {
-                for (int i = 0; i < xpItemCount && posIndex < deadEndPositions.Count; i++, posIndex++)
+                for (int i = 0; i < spawnConfig.XpItemCount && posIndex < deadEndPositions.Count; i++, posIndex++)
                 {
-                    SpawnItem(xpItemPrefab, deadEndPositions[posIndex]);
+                    SpawnItem(spawnConfig.XpItemPrefab, deadEndPositions[posIndex]);
                 }
             }
 
-            // Spawn pebbles items
-            if (pebblesItemActive)
+            // Spawn general items (randomly picked from pool)
+            for (int i = 0; i < spawnConfig.GeneralItemCount && posIndex < deadEndPositions.Count; i++, posIndex++)
             {
-                for (int i = 0; i < pebblesItemCount && posIndex < deadEndPositions.Count; i++, posIndex++)
+                var randomItem = spawnConfig.GetRandomGeneralItem();
+                if (randomItem != null)
                 {
-                    SpawnItem(pebblesItemPrefab, deadEndPositions[posIndex]);
+                    SpawnItem(randomItem, deadEndPositions[posIndex]);
                 }
             }
 
-            // Spawn invisibility items
-            if (invisibilityItemActive)
+            Debug.Log($"ItemSpawner: Spawned {posIndex} items ({spawnConfig.XpItemCount} XP + {spawnConfig.GeneralItemCount} general)");
+        }
+
+        /// <summary>
+        /// Clears all spawned items from the scene.
+        /// </summary>
+        public void ClearSpawnedItems()
+        {
+            foreach (var item in _spawnedItems)
             {
-                for (int i = 0; i < invisibilityItemCount && posIndex < deadEndPositions.Count; i++, posIndex++)
+                if (item != null)
                 {
-                    SpawnItem(invisibilityItemPrefab, deadEndPositions[posIndex]);
+                    Destroy(item);
                 }
             }
-
-            // Spawn wisp items
-            if (wispItemActive)
-            {
-                for (int i = 0; i < wispItemCount && posIndex < deadEndPositions.Count; i++, posIndex++)
-                {
-                    SpawnItem(wispItemPrefab, deadEndPositions[posIndex]);
-                }
-            }
-
-            Debug.Log($"ItemSpawner: Found {deadEndPositions.Count} dead ends, spawned items at {posIndex} locations");
+            _spawnedItems.Clear();
         }
 
         private void SpawnItem(GameObject prefab, Vector2 position)
         {
             if (prefab == null) return;
-            Instantiate(prefab, new Vector3(position.x, position.y, 0), Quaternion.identity);
+            var item = Instantiate(prefab, new Vector3(position.x, position.y, 0), Quaternion.identity);
+            _spawnedItems.Add(item);
         }
 
         /// <summary>
         /// Finds all dead-end positions in the maze.
-        /// A dead-end is the center of a 3x3 floor area that has only one exit direction.
         /// </summary>
         private List<Vector2> FindDeadEnds(MazeGrid grid, Vector2 startPos, Vector2 exitPos)
         {
@@ -168,15 +117,12 @@ namespace Labyrinth.Items
             {
                 for (int y = 1; y < grid.Height - 1; y++)
                 {
-                    // Skip if center is a wall
                     if (grid.GetCell(x, y).IsWall)
                         continue;
 
-                    // Skip start and exit positions
                     if (IsNearPosition(x, y, startPos, 2) || IsNearPosition(x, y, exitPos, 2))
                         continue;
 
-                    // Check if this is a dead-end (corridor ending)
                     if (IsDeadEnd(grid, x, y))
                     {
                         deadEnds.Add(new Vector2(x + 0.5f, y + 0.5f));
@@ -187,9 +133,6 @@ namespace Labyrinth.Items
             return deadEnds;
         }
 
-        /// <summary>
-        /// Checks if a floor tile is a dead-end (has only one exit direction).
-        /// </summary>
         private bool IsDeadEnd(MazeGrid grid, int x, int y)
         {
             int connections = 0;
@@ -214,9 +157,6 @@ namespace Labyrinth.Items
             return Mathf.Abs(x - pos.x) <= distance && Mathf.Abs(y - pos.y) <= distance;
         }
 
-        /// <summary>
-        /// Finds all valid floor positions (not start, not exit, not already in deadEnds list).
-        /// </summary>
         private List<Vector2> FindFloorPositions(MazeGrid grid, Vector2 startPos, Vector2 exitPos, List<Vector2> excludePositions)
         {
             var floorPositions = new List<Vector2>();

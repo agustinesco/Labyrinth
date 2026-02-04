@@ -25,6 +25,11 @@ namespace Labyrinth.Enemy
         private float _attackTimer;
         private SpriteRenderer _spriteRenderer;
 
+        // Path caching - only recalculate when target moves significantly
+        private Vector2Int _lastTargetPos;
+        private Vector2Int _lastOwnPos;
+        private const int TargetMoveThreshold = 2; // Recalculate if target moved this many cells
+
         public void Initialize(MazeGrid grid, Transform target)
         {
             _grid = grid;
@@ -51,14 +56,14 @@ namespace Labyrinth.Enemy
             _pathTimer -= Time.deltaTime;
             if (_pathTimer <= 0)
             {
-                RecalculatePath();
+                TryRecalculatePath();
                 _pathTimer = pathRecalculateInterval;
             }
 
             MoveAlongPath();
         }
 
-        private void RecalculatePath()
+        private void TryRecalculatePath()
         {
             Vector2Int currentPos = new Vector2Int(
                 Mathf.RoundToInt(transform.position.x),
@@ -69,8 +74,18 @@ namespace Labyrinth.Enemy
                 Mathf.RoundToInt(_target.position.y)
             );
 
-            _currentPath = _pathfinding.FindPath(currentPos, targetPos);
-            _pathIndex = 0;
+            // Only recalculate if target or self has moved significantly, or path is exhausted
+            bool targetMoved = Mathf.Abs(targetPos.x - _lastTargetPos.x) + Mathf.Abs(targetPos.y - _lastTargetPos.y) >= TargetMoveThreshold;
+            bool selfMoved = Mathf.Abs(currentPos.x - _lastOwnPos.x) + Mathf.Abs(currentPos.y - _lastOwnPos.y) >= TargetMoveThreshold;
+            bool pathExhausted = _currentPath == null || _pathIndex >= _currentPath.Count;
+
+            if (targetMoved || selfMoved || pathExhausted)
+            {
+                _currentPath = _pathfinding.FindPath(currentPos, targetPos);
+                _pathIndex = 0;
+                _lastTargetPos = targetPos;
+                _lastOwnPos = currentPos;
+            }
         }
 
         private void MoveAlongPath()

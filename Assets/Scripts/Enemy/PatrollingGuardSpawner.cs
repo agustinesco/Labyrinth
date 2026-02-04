@@ -20,8 +20,22 @@ namespace Labyrinth.Enemy
             public List<Vector2> WallHuggingPath;
         }
 
+        private List<GameObject> _spawnedGuards = new List<GameObject>();
+
+        /// <summary>
+        /// Configures the spawner settings from an EnemySpawnConfig.
+        /// </summary>
+        public void Configure(int maxGuards, float spawnChance, int minCorridorLength, float bufferFromStartExit)
+        {
+            this.maxGuards = maxGuards;
+            this.spawnChance = spawnChance;
+            this.minCorridorLength = minCorridorLength;
+            this.bufferFromStartExit = bufferFromStartExit;
+        }
+
         public void SpawnGuards(MazeGrid grid, Vector2 startPos, Vector2 exitPos, Transform player)
         {
+            ClearGuards();
             Debug.Log($"[PatrolGuard] SpawnGuards called. Grid: {grid.Width}x{grid.Height}");
             var corridors = FindValidCorridors(grid, startPos, exitPos);
 
@@ -237,11 +251,28 @@ namespace Labyrinth.Enemy
                 guardObj = CreateGuardDynamically(spawnPos);
             }
 
+            _spawnedGuards.Add(guardObj);
+
             var controller = guardObj.GetComponent<PatrollingGuardController>();
             if (controller != null)
             {
                 controller.Initialize(grid, player, corridor.WallHuggingPath);
             }
+        }
+
+        /// <summary>
+        /// Clears all spawned guards.
+        /// </summary>
+        public void ClearGuards()
+        {
+            foreach (var guard in _spawnedGuards)
+            {
+                if (guard != null)
+                {
+                    Destroy(guard);
+                }
+            }
+            _spawnedGuards.Clear();
         }
 
         private GameObject CreateGuardDynamically(Vector2 position)

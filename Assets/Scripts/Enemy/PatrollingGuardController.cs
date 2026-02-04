@@ -75,6 +75,11 @@ namespace Labyrinth.Enemy
         private List<Vector2Int> _currentPath;
         private int _pathIndex;
 
+        // Path caching - only recalculate when target moves significantly
+        private Vector2Int _lastPathTargetPos;
+        private Vector2Int _lastPathOwnPos;
+        private const int TargetMoveThreshold = 2;
+
         // Investigation/Search state
         private Vector2 _lastSeenPlayerPosition;
         private float _searchTimer;
@@ -101,10 +106,11 @@ namespace Labyrinth.Enemy
 
         private void Update()
         {
-            if (_player == null || _grid == null || _patrolWaypoints == null || _patrolWaypoints.Count < 2)
+            if (_grid == null || _patrolWaypoints == null || _patrolWaypoints.Count < 2)
                 return;
 
-            if (GameManager.Instance?.CurrentState != GameState.Playing)
+            // Allow movement in test mode (no GameManager) or when game is playing
+            if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameState.Playing)
                 return;
 
             _attackTimer -= Time.deltaTime;
@@ -451,9 +457,19 @@ namespace Labyrinth.Enemy
                 Mathf.RoundToInt(_player.position.y)
             );
 
-            _currentPath = _pathfinding.FindPath(currentPos, targetPos);
-            // Skip the first node (current position) to avoid looking backward
-            _pathIndex = (_currentPath != null && _currentPath.Count > 1) ? 1 : 0;
+            // Only recalculate if target or self has moved significantly, or path is exhausted
+            bool targetMoved = Mathf.Abs(targetPos.x - _lastPathTargetPos.x) + Mathf.Abs(targetPos.y - _lastPathTargetPos.y) >= TargetMoveThreshold;
+            bool selfMoved = Mathf.Abs(currentPos.x - _lastPathOwnPos.x) + Mathf.Abs(currentPos.y - _lastPathOwnPos.y) >= TargetMoveThreshold;
+            bool pathExhausted = _currentPath == null || _pathIndex >= _currentPath.Count;
+
+            if (targetMoved || selfMoved || pathExhausted)
+            {
+                _currentPath = _pathfinding.FindPath(currentPos, targetPos);
+                // Skip the first node (current position) to avoid looking backward
+                _pathIndex = (_currentPath != null && _currentPath.Count > 1) ? 1 : 0;
+                _lastPathTargetPos = targetPos;
+                _lastPathOwnPos = currentPos;
+            }
         }
 
         private void RecalculatePathToLastSeenPosition()

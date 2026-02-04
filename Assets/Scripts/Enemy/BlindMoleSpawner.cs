@@ -22,6 +22,17 @@ namespace Labyrinth.Enemy
         private List<BlindMoleController> _spawnedMoles = new List<BlindMoleController>();
 
         /// <summary>
+        /// Configures the spawner settings from an EnemySpawnConfig.
+        /// </summary>
+        public void Configure(int maxMoles, float spawnChance, float startExclusionRadius, float exitExclusionRadius)
+        {
+            this.maxMoles = maxMoles;
+            this.spawnChance = spawnChance;
+            this.startExclusionRadius = startExclusionRadius;
+            this.exitExclusionRadius = exitExclusionRadius;
+        }
+
+        /// <summary>
         /// Spawns moles based on the maze grid.
         /// </summary>
         public void SpawnMoles(MazeGrid grid)
@@ -205,7 +216,10 @@ namespace Labyrinth.Enemy
             return Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 16);
         }
 
-        private void ClearExistingMoles()
+        /// <summary>
+        /// Clears all spawned moles.
+        /// </summary>
+        public void ClearMoles()
         {
             foreach (var mole in _spawnedMoles)
             {
@@ -215,6 +229,11 @@ namespace Labyrinth.Enemy
                 }
             }
             _spawnedMoles.Clear();
+        }
+
+        private void ClearExistingMoles()
+        {
+            ClearMoles();
         }
 
         private void ShuffleList<T>(List<T> list)

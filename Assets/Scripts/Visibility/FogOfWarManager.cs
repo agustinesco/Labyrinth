@@ -432,6 +432,31 @@ namespace Labyrinth.Visibility
         }
 
         /// <summary>
+        /// Reveals the entire map by marking all cells as explored.
+        /// </summary>
+        public void RevealEntireMap()
+        {
+            if (_exploredValues == null || _explorationTexture == null)
+            {
+                Debug.LogWarning("[FogOfWar] Cannot reveal map - textures not initialized");
+                return;
+            }
+
+            // Mark all cells as fully explored
+            for (int x = 0; x < _texWidth; x++)
+            {
+                for (int y = 0; y < _texHeight; y++)
+                {
+                    _exploredValues[x, y] = 1f;
+                    _explorationTexture.SetPixel(x, y, new Color(1f, 0, 0, 1f));
+                }
+            }
+
+            _explorationTexture.Apply();
+            Debug.Log("[FogOfWar] Entire map revealed");
+        }
+
+        /// <summary>
         /// Registers a placed light source to be included in visibility calculations.
         /// </summary>
         public void RegisterLightSource(PlacedLightSource lightSource)

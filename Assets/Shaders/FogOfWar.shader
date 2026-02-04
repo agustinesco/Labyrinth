@@ -6,7 +6,7 @@ Shader "Labyrinth/FogOfWar"
         _ExplorationTex ("Exploration Map", 2D) = "black" {}
         _MazeSize ("Maze Size", Vector) = (25, 25, 0, 0)
         _UnexploredColor ("Unexplored Color", Color) = (0, 0, 0, 1)
-        _ExploredColor ("Explored Color", Color) = (0, 0, 0, 0.7)
+        _ExploredColor ("Explored Color", Color) = (0, 0, 0, 0.85)
         _EdgeSoftness ("Edge Softness", Range(0, 1)) = 0.3
     }
     SubShader

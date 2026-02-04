@@ -13,6 +13,7 @@ namespace Labyrinth.Enemy
         public enum MoleState
         {
             Inactive,   // Underground, not detecting
+            Emerging,   // Warning state - visible but not yet detecting
             Active,     // Above ground, detecting player movement
             Attacking,  // Throwing projectile
             Hiding      // Going back underground
@@ -20,6 +21,7 @@ namespace Labyrinth.Enemy
 
         [Header("State Timing")]
         [SerializeField] private float inactiveDuration = 3f;
+        [SerializeField] private float emergingDuration = 1f;
         [SerializeField] private float activeDuration = 4f;
         [SerializeField] private float hidingDuration = 1f;
 
@@ -35,6 +37,7 @@ namespace Labyrinth.Enemy
         [Header("Visuals")]
         [SerializeField] private SpriteRenderer spriteRenderer;
         [SerializeField] private Color inactiveColor = new Color(0.4f, 0.3f, 0.2f, 0.5f);
+        [SerializeField] private Color emergingColor = new Color(0.8f, 0.6f, 0.2f, 0.8f);
         [SerializeField] private Color activeColor = new Color(0.6f, 0.4f, 0.3f, 1f);
 
         private MoleState _currentState = MoleState.Inactive;
@@ -58,10 +61,10 @@ namespace Labyrinth.Enemy
 
         private void Update()
         {
+            // Try to find player if not set, but continue updating even without one (test mode)
             if (_player == null)
             {
                 FindPlayer();
-                if (_player == null) return;
             }
 
             _stateTimer -= Time.deltaTime;
@@ -70,6 +73,9 @@ namespace Labyrinth.Enemy
             {
                 case MoleState.Inactive:
                     UpdateInactive();
+                    break;
+                case MoleState.Emerging:
+                    UpdateEmerging();
                     break;
                 case MoleState.Active:
                     UpdateActive();
@@ -101,13 +107,22 @@ namespace Labyrinth.Enemy
             {
                 case MoleState.Inactive:
                     _stateTimer = inactiveDuration;
-                    SetVisuals(false);
+                    SetVisuals(MoleState.Inactive);
                     if (_collider != null) _collider.enabled = false;
+                    break;
+
+                case MoleState.Emerging:
+                    _stateTimer = emergingDuration;
+                    SetVisuals(MoleState.Emerging);
+                    if (_collider != null) _collider.enabled = true;
+                    // Reset player position tracking so movement detection starts fresh when Active
+                    if (_player != null)
+                        _lastPlayerPosition = _player.position;
                     break;
 
                 case MoleState.Active:
                     _stateTimer = activeDuration;
-                    SetVisuals(true);
+                    SetVisuals(MoleState.Active);
                     if (_collider != null) _collider.enabled = true;
                     _playerWasInRange = false;
                     if (_player != null)
@@ -120,7 +135,7 @@ namespace Labyrinth.Enemy
 
                 case MoleState.Hiding:
                     _stateTimer = hidingDuration;
-                    SetVisuals(false);
+                    SetVisuals(MoleState.Hiding);
                     if (_collider != null) _collider.enabled = false;
                     break;
             }
@@ -130,8 +145,22 @@ namespace Labyrinth.Enemy
         {
             if (_stateTimer <= 0)
             {
+                EnterState(MoleState.Emerging);
+            }
+        }
+
+        private void UpdateEmerging()
+        {
+            // Warning state - mole is visible but not detecting movement yet
+            // Player has time to notice and stop moving
+            if (_stateTimer <= 0)
+            {
                 EnterState(MoleState.Active);
             }
+
+            // Keep tracking player position so detection starts fresh when Active
+            if (_player != null)
+                _lastPlayerPosition = _player.position;
         }
 
         private void UpdateActive()
@@ -141,6 +170,10 @@ namespace Labyrinth.Enemy
                 EnterState(MoleState.Inactive);
                 return;
             }
+
+            // Skip player detection if no player (test mode)
+            if (_player == null)
+                return;
 
             // Check if player is in detection range
             float distanceToPlayer = Vector2.Distance(transform.position, _player.position);
@@ -251,11 +284,24 @@ namespace Labyrinth.Enemy
             return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
         }
 
-        private void SetVisuals(bool active)
+        private void SetVisuals(MoleState state)
         {
             if (spriteRenderer != null)
             {
-                spriteRenderer.color = active ? activeColor : inactiveColor;
+                switch (state)
+                {
+                    case MoleState.Inactive:
+                    case MoleState.Hiding:
+                        spriteRenderer.color = inactiveColor;
+                        break;
+                    case MoleState.Emerging:
+                        spriteRenderer.color = emergingColor;
+                        break;
+                    case MoleState.Active:
+                    case MoleState.Attacking:
+                        spriteRenderer.color = activeColor;
+                        break;
+                }
             }
         }
 

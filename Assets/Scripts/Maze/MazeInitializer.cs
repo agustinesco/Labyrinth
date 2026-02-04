@@ -19,8 +19,8 @@ namespace Labyrinth.Maze
         [SerializeField] private ItemSpawner itemSpawner;
         [SerializeField] private TrapSpawner trapSpawner;
         [SerializeField] private EnemySpawner enemySpawner;
-        [SerializeField] private PatrollingGuardSpawner patrollingGuardSpawner;
-        [SerializeField] private BlindMoleSpawner blindMoleSpawner;
+        [SerializeField] private EnemySpawnerManager enemySpawnerManager;
+        [SerializeField] private EnemySpawnConfig enemySpawnConfig;
         [SerializeField] private GameObject playerPrefab;
         [SerializeField] private CameraFollow cameraFollow;
         [SerializeField] private HealthDisplay healthDisplay;
@@ -104,16 +104,14 @@ namespace Labyrinth.Maze
                 enemySpawner.Initialize(Grid, mazeRenderer.StartPosition, playerObj.transform);
             }
 
-            // Spawn patrolling guards
-            if (patrollingGuardSpawner != null)
+            // Spawn enemies using manager
+            if (enemySpawnerManager != null)
             {
-                patrollingGuardSpawner.SpawnGuards(Grid, mazeRenderer.StartPosition, mazeRenderer.ExitPosition, playerObj.transform);
-            }
-
-            // Spawn blind moles at 4-way intersections
-            if (blindMoleSpawner != null)
-            {
-                blindMoleSpawner.SpawnMoles(Grid);
+                if (enemySpawnConfig != null)
+                {
+                    enemySpawnerManager.SpawnConfig = enemySpawnConfig;
+                }
+                enemySpawnerManager.SpawnEnemies(Grid, mazeRenderer.StartPosition, mazeRenderer.ExitPosition, playerObj.transform);
             }
         }
 
