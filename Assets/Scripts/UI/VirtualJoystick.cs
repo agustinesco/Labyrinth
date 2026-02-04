@@ -133,17 +133,9 @@ namespace Labyrinth.UI
         {
             float alpha = active ? activeAlpha : idleAlpha;
 
-            if (joystickCanvasGroup != null)
+            // Always set alpha on images directly to ensure visibility
+            if (background != null)
             {
-                joystickCanvasGroup.alpha = alpha;
-            }
-            else if (_backgroundCanvasGroup != null)
-            {
-                _backgroundCanvasGroup.alpha = alpha;
-            }
-            else if (background != null)
-            {
-                // Fallback: set alpha on background image
                 var bgImage = background.GetComponent<Image>();
                 if (bgImage != null)
                 {
@@ -151,18 +143,27 @@ namespace Labyrinth.UI
                     color.a = alpha;
                     bgImage.color = color;
                 }
+            }
 
-                // Also set on knob
-                if (knob != null)
+            if (knob != null)
+            {
+                var knobImage = knob.GetComponent<Image>();
+                if (knobImage != null)
                 {
-                    var knobImage = knob.GetComponent<Image>();
-                    if (knobImage != null)
-                    {
-                        var color = knobImage.color;
-                        color.a = alpha;
-                        knobImage.color = color;
-                    }
+                    var color = knobImage.color;
+                    color.a = alpha;
+                    knobImage.color = color;
                 }
+            }
+
+            // Also update canvas groups if they exist
+            if (joystickCanvasGroup != null)
+            {
+                joystickCanvasGroup.alpha = 1f; // Keep at 1, we control via image alpha
+            }
+            if (_backgroundCanvasGroup != null)
+            {
+                _backgroundCanvasGroup.alpha = 1f;
             }
         }
 
