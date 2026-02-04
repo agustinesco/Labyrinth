@@ -74,3 +74,6 @@ Thumbs.db
 # Visual Studio
 *.csproj
 *.sln
+
+
+build-ios/
