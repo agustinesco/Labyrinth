@@ -6,7 +6,8 @@ Shader "Labyrinth/FogOfWar"
         _ExplorationTex ("Exploration Map", 2D) = "black" {}
         _MazeSize ("Maze Size", Vector) = (25, 25, 0, 0)
         _UnexploredColor ("Unexplored Color", Color) = (0, 0, 0, 1)
-        _ExploredColor ("Explored Color", Color) = (0, 0, 0, 0.5)
+        _ExploredColor ("Explored Color", Color) = (0, 0, 0, 0.7)
+        _EdgeSoftness ("Edge Softness", Range(0, 1)) = 0.3
     }
     SubShader
     {
@@ -42,6 +43,7 @@ Shader "Labyrinth/FogOfWar"
             float4 _MazeSize;
             float4 _UnexploredColor;
             float4 _ExploredColor;
+            float _EdgeSoftness;
 
             v2f vert (appdata v)
             {
@@ -61,20 +63,26 @@ Shader "Labyrinth/FogOfWar"
                 float visible = tex2D(_VisibilityTex, uv).r;
                 float explored = tex2D(_ExplorationTex, uv).r;
 
-                // Sharp transitions using step() for crisp edges
-                float isVisible = step(0.1, visible);
-                float isExplored = step(0.1, explored);
+                // Soft transitions for smoother edges
+                float isVisible = smoothstep(0.0, _EdgeSoftness + 0.1, visible);
+                float isExplored = smoothstep(0.0, _EdgeSoftness + 0.1, explored);
 
                 // Fully transparent for visible areas
                 float4 clearCol = float4(0, 0, 0, 0);
 
-                // Start with unexplored color (full black)
-                float4 result = _UnexploredColor;
+                // Unexplored: solid black
+                float4 unexploredCol = _UnexploredColor;
 
-                // If explored but not visible, use explored color (semi-transparent)
-                result = lerp(result, _ExploredColor, isExplored);
+                // Explored but not visible: semi-transparent black
+                float4 exploredCol = _ExploredColor;
 
-                // If currently visible, fully transparent
+                // Start with unexplored (solid black)
+                float4 result = unexploredCol;
+
+                // If explored but not visible, blend to explored color
+                result = lerp(result, exploredCol, isExplored);
+
+                // If currently visible, fade to transparent
                 result = lerp(result, clearCol, isVisible);
 
                 return result;

@@ -88,7 +88,7 @@ namespace Labyrinth.Player
                     break;
 
                 case ItemType.Light:
-                    SpawnPlacedLight();
+                    SpawnPlacedLight(item);
                     break;
 
                 case ItemType.Heal:
@@ -111,10 +111,45 @@ namespace Labyrinth.Player
                     // Drop a pebble at player's position
                     Labyrinth.Items.PlacedPebble.SpawnAt(transform.position);
                     break;
+
+                case ItemType.Invisibility:
+                    if (InvisibilityManager.Instance != null)
+                    {
+                        InvisibilityManager.Instance.ActivateInvisibility(item.Duration);
+                    }
+                    break;
+
+                case ItemType.Wisp:
+                    SpawnWispOrb();
+                    break;
             }
         }
 
-        private void SpawnPlacedLight()
+        private void SpawnWispOrb()
+        {
+            // Find the MazeRenderer to get the grid and key position
+            var mazeRenderer = FindObjectOfType<Labyrinth.Maze.MazeRenderer>();
+            if (mazeRenderer == null)
+            {
+                Debug.LogWarning("PlayerInventory: Could not find MazeRenderer for wisp!");
+                return;
+            }
+
+            var grid = mazeRenderer.GetGrid();
+            if (grid == null)
+            {
+                Debug.LogWarning("PlayerInventory: MazeGrid is null!");
+                return;
+            }
+
+            // The key is at the exit position
+            Vector2 keyPosition = mazeRenderer.ExitPosition;
+
+            // Spawn the wisp orb
+            Labyrinth.Items.WispOrb.SpawnAt(transform.position, grid, keyPosition);
+        }
+
+        private void SpawnPlacedLight(InventoryItem item)
         {
             Vector2 playerPos = transform.position;
             var wallData = FindClosestWall(playerPos);
@@ -132,12 +167,20 @@ namespace Labyrinth.Player
 
                 // Add the PlacedLightSource component
                 PlacedLightSource lightSource = lightObj.AddComponent<PlacedLightSource>();
-                lightSource.Initialize(4f); // Default light radius
+                lightSource.Initialize(item.EffectValue > 0 ? item.EffectValue : 4f);
 
-                // Add a visual indicator (small glowing sprite)
+                // Add a visual indicator
                 SpriteRenderer sr = lightObj.AddComponent<SpriteRenderer>();
-                sr.sprite = CreateLightSprite();
-                sr.color = new Color(1f, 0.9f, 0.6f); // Warm yellow
+                if (item.ExtraSprite != null)
+                {
+                    sr.sprite = item.ExtraSprite;
+                    sr.color = Color.white;
+                }
+                else
+                {
+                    sr.sprite = CreateLightSprite();
+                    sr.color = new Color(1f, 0.9f, 0.6f); // Warm yellow
+                }
                 sr.sortingOrder = 10;
                 lightObj.transform.localScale = Vector3.one * 0.5f;
 

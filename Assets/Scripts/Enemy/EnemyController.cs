@@ -38,8 +38,11 @@ namespace Labyrinth.Enemy
             if (_target == null || _grid == null || GameManager.Instance?.CurrentState != GameState.Playing)
                 return;
 
-            // Don't chase player in no-clip mode
+            // Don't chase player in no-clip mode or invisibility mode
             if (Player.NoClipManager.Instance != null && Player.NoClipManager.Instance.IsNoClipActive)
+                return;
+
+            if (Player.InvisibilityManager.Instance != null && Player.InvisibilityManager.Instance.IsInvisible)
                 return;
 
             _chaseTimer += Time.deltaTime;
@@ -88,8 +91,11 @@ namespace Labyrinth.Enemy
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            // Don't deal damage in no-clip mode
+            // Don't deal damage in no-clip mode or invisibility mode
             if (Player.NoClipManager.Instance != null && Player.NoClipManager.Instance.IsNoClipActive)
+                return;
+
+            if (Player.InvisibilityManager.Instance != null && Player.InvisibilityManager.Instance.IsInvisible)
                 return;
 
             if (other.CompareTag("Player") && _attackTimer <= 0)

@@ -2,6 +2,9 @@ using UnityEngine;
 using System.Collections.Generic;
 using Labyrinth.Player;
 using Labyrinth.Leveling;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Labyrinth.Visibility
 {
@@ -10,6 +13,7 @@ namespace Labyrinth.Visibility
     /// - Visibility texture: Updated each frame with currently visible cells
     /// - Exploration texture: Persistent, marks cells that have ever been seen
     /// </summary>
+    [ExecuteAlways]
     public class FogOfWarManager : MonoBehaviour
     {
         [Header("Cone Settings")]
@@ -57,11 +61,31 @@ namespace Labyrinth.Visibility
 
         private void Awake()
         {
+            // Only initialize in play mode
+            if (!Application.isPlaying) return;
+
             InitializeTextures();
         }
 
         private void Start()
         {
+            // Only run in play mode
+            if (!Application.isPlaying)
+            {
+#if UNITY_EDITOR
+                // Hide overlay in edit mode
+                if (darknessOverlay != null)
+                    darknessOverlay.gameObject.SetActive(false);
+#endif
+                return;
+            }
+
+            // Ensure overlay is visible in play mode
+            if (darknessOverlay != null)
+            {
+                darknessOverlay.gameObject.SetActive(true);
+            }
+
             FindPlayer();
             SetupMaterial();
         }
@@ -115,8 +139,20 @@ namespace Labyrinth.Visibility
         {
             if (darknessOverlay == null) return;
 
-            // Create material instance
-            _material = darknessOverlay.material;
+            // Use sharedMaterial in edit mode to avoid material leaks
+            // Use material instance in play mode for runtime modifications
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                _material = darknessOverlay.sharedMaterial;
+            }
+            else
+#endif
+            {
+                _material = darknessOverlay.material;
+            }
+
+            if (_material == null) return;
 
             // Set textures and maze size
             _material.SetTexture(VisibilityTexProperty, _visibilityTexture);
@@ -352,7 +388,7 @@ namespace Labyrinth.Visibility
         }
 
         /// <summary>
-        /// Sets the maze dimensions and reinitializes textures.
+        /// Sets the maze dimensions and reinitializes textures and overlay.
         /// </summary>
         public void SetMazeDimensions(int width, int height)
         {
@@ -360,6 +396,30 @@ namespace Labyrinth.Visibility
             mazeHeight = height;
             InitializeTextures();
             SetupMaterial();
+            ResizeDarknessOverlay();
+        }
+
+        /// <summary>
+        /// Resizes and repositions the darkness overlay to cover the entire maze.
+        /// </summary>
+        private void ResizeDarknessOverlay()
+        {
+            if (darknessOverlay == null) return;
+
+            // Position at center of maze
+            darknessOverlay.transform.position = new Vector3(
+                mazeWidth / 2f,
+                mazeHeight / 2f,
+                darknessOverlay.transform.position.z
+            );
+
+            // Scale to cover entire maze (2x size for padding/margin)
+            float scaleMultiplier = 2f;
+            darknessOverlay.transform.localScale = new Vector3(
+                mazeWidth * scaleMultiplier,
+                mazeHeight * scaleMultiplier,
+                1f
+            );
         }
 
         /// <summary>
@@ -435,22 +495,60 @@ namespace Labyrinth.Visibility
         private void OnEnable()
         {
             Instance = this;
+#if UNITY_EDITOR
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+            UpdateOverlayVisibility();
+#endif
         }
 
         private void OnDisable()
         {
             if (Instance == this) Instance = null;
+#if UNITY_EDITOR
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+#endif
         }
+
+#if UNITY_EDITOR
+        private void OnPlayModeStateChanged(PlayModeStateChange state)
+        {
+            // Delay the visibility update to avoid issues during state transitions
+            EditorApplication.delayCall += UpdateOverlayVisibility;
+        }
+
+        private void UpdateOverlayVisibility()
+        {
+            if (darknessOverlay != null && darknessOverlay.gameObject != null)
+            {
+                // Hide overlay in edit mode, show in play mode
+                bool shouldBeActive = Application.isPlaying;
+                if (darknessOverlay.gameObject.activeSelf != shouldBeActive)
+                {
+                    darknessOverlay.gameObject.SetActive(shouldBeActive);
+                }
+            }
+        }
+#endif
 
         private void OnDestroy()
         {
             if (_visibilityTexture != null)
             {
-                Destroy(_visibilityTexture);
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                    DestroyImmediate(_visibilityTexture);
+                else
+#endif
+                    Destroy(_visibilityTexture);
             }
             if (_explorationTexture != null)
             {
-                Destroy(_explorationTexture);
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                    DestroyImmediate(_explorationTexture);
+                else
+#endif
+                    Destroy(_explorationTexture);
             }
         }
     }

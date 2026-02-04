@@ -9,6 +9,8 @@ namespace Labyrinth.Items
         Explosive,
         Key, // Key is special - collected immediately, not stored
         XP, // XP is collected immediately for leveling
-        Pebbles // Multi-use item that drops pebbles on the ground
+        Pebbles, // Multi-use item that drops pebbles on the ground
+        Invisibility, // Makes player undetectable by enemies for a duration
+        Wisp // Spawns an orb that pathfinds to the key, leaving a fading trail
     }
 }

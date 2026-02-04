@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using Labyrinth.Player;
 
 namespace Labyrinth.Leveling
 {
@@ -8,7 +7,10 @@ namespace Labyrinth.Leveling
     {
         public static UpgradeManager Instance { get; private set; }
 
-        private List<Upgrade> _upgradePool;
+        [Header("Available Upgrades")]
+        [SerializeField] private List<LevelUpUpgrade> availableUpgrades = new List<LevelUpUpgrade>();
+
+        public IReadOnlyList<LevelUpUpgrade> AvailableUpgrades => availableUpgrades;
 
         private void Awake()
         {
@@ -18,7 +20,6 @@ namespace Labyrinth.Leveling
                 return;
             }
             Instance = this;
-            InitializeUpgradePool();
         }
 
         private void OnDestroy()
@@ -27,20 +28,13 @@ namespace Labyrinth.Leveling
                 Instance = null;
         }
 
-        private void InitializeUpgradePool()
+        /// <summary>
+        /// Get a random selection of upgrades to offer the player.
+        /// </summary>
+        public List<LevelUpUpgrade> GetRandomUpgrades(int count)
         {
-            _upgradePool = new List<Upgrade>
-            {
-                new Upgrade(UpgradeType.Speed, "Swift Feet", "+1 Movement Speed", 1f, Color.cyan),
-                new Upgrade(UpgradeType.Vision, "Eagle Eye", "+2 Vision Range", 2f, Color.yellow),
-                new Upgrade(UpgradeType.Heal, "Restoration", "Restore 1 HP", 1f, Color.green)
-            };
-        }
-
-        public List<Upgrade> GetRandomUpgrades(int count)
-        {
-            var result = new List<Upgrade>();
-            var available = new List<Upgrade>(_upgradePool);
+            var result = new List<LevelUpUpgrade>();
+            var available = new List<LevelUpUpgrade>(availableUpgrades);
 
             // Shuffle and take 'count' upgrades
             for (int i = 0; i < count && available.Count > 0; i++)
@@ -51,38 +45,27 @@ namespace Labyrinth.Leveling
             }
 
             // If we need more upgrades than unique ones, allow duplicates
-            while (result.Count < count && _upgradePool.Count > 0)
+            while (result.Count < count && availableUpgrades.Count > 0)
             {
-                int index = Random.Range(0, _upgradePool.Count);
-                result.Add(_upgradePool[index]);
+                int index = Random.Range(0, availableUpgrades.Count);
+                result.Add(availableUpgrades[index]);
             }
 
             return result;
         }
 
-        public void ApplyUpgrade(Upgrade upgrade)
+        /// <summary>
+        /// Apply the selected upgrade to the player.
+        /// </summary>
+        public void ApplyUpgrade(LevelUpUpgrade upgrade)
         {
-            var levelSystem = PlayerLevelSystem.Instance;
-            if (levelSystem == null) return;
-
-            switch (upgrade.Type)
+            if (upgrade == null)
             {
-                case UpgradeType.Speed:
-                    levelSystem.ApplyPermanentSpeedBonus(upgrade.Value);
-                    break;
-
-                case UpgradeType.Vision:
-                    levelSystem.ApplyPermanentVisionBonus(upgrade.Value);
-                    break;
-
-                case UpgradeType.Heal:
-                    var playerHealth = FindObjectOfType<PlayerHealth>();
-                    if (playerHealth != null)
-                    {
-                        playerHealth.Heal((int)upgrade.Value);
-                    }
-                    break;
+                Debug.LogWarning("UpgradeManager: Attempted to apply null upgrade");
+                return;
             }
+
+            upgrade.ApplyEffect();
         }
     }
 }

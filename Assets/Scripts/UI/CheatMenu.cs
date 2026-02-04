@@ -15,16 +15,20 @@ namespace Labyrinth.UI
         [SerializeField] private Button healItemButton;
         [SerializeField] private Button explosiveItemButton;
         [SerializeField] private Button pebblesItemButton;
+        [SerializeField] private Button invisibilityItemButton;
+        [SerializeField] private Button wispItemButton;
         [SerializeField] private Button xpButton;
         [SerializeField] private Button noClipButton;
         [SerializeField] private int xpAmountPerClick = 1;
 
-        [Header("Item Sprites")]
-        [SerializeField] private Sprite speedItemSprite;
-        [SerializeField] private Sprite lightItemSprite;
-        [SerializeField] private Sprite healItemSprite;
-        [SerializeField] private Sprite explosiveItemSprite;
-        [SerializeField] private Sprite pebblesItemSprite;
+        [Header("Item Prefabs")]
+        [SerializeField] private GameObject speedItemPrefab;
+        [SerializeField] private GameObject lightItemPrefab;
+        [SerializeField] private GameObject healItemPrefab;
+        [SerializeField] private GameObject explosiveItemPrefab;
+        [SerializeField] private GameObject pebblesItemPrefab;
+        [SerializeField] private GameObject invisibilityItemPrefab;
+        [SerializeField] private GameObject wispItemPrefab;
 
         private bool _isOpen;
 
@@ -38,19 +42,25 @@ namespace Labyrinth.UI
                 toggleButton.onClick.AddListener(ToggleMenu);
 
             if (speedItemButton != null)
-                speedItemButton.onClick.AddListener(() => SpawnItem(ItemType.Speed));
+                speedItemButton.onClick.AddListener(() => GiveItemFromPrefab(speedItemPrefab));
 
             if (lightItemButton != null)
-                lightItemButton.onClick.AddListener(() => SpawnItem(ItemType.Light));
+                lightItemButton.onClick.AddListener(() => GiveItemFromPrefab(lightItemPrefab));
 
             if (healItemButton != null)
-                healItemButton.onClick.AddListener(() => SpawnItem(ItemType.Heal));
+                healItemButton.onClick.AddListener(() => GiveItemFromPrefab(healItemPrefab));
 
             if (explosiveItemButton != null)
-                explosiveItemButton.onClick.AddListener(() => SpawnItem(ItemType.Explosive));
+                explosiveItemButton.onClick.AddListener(() => GiveItemFromPrefab(explosiveItemPrefab));
 
             if (pebblesItemButton != null)
-                pebblesItemButton.onClick.AddListener(() => SpawnItem(ItemType.Pebbles));
+                pebblesItemButton.onClick.AddListener(() => GiveItemFromPrefab(pebblesItemPrefab));
+
+            if (invisibilityItemButton != null)
+                invisibilityItemButton.onClick.AddListener(() => GiveItemFromPrefab(invisibilityItemPrefab));
+
+            if (wispItemButton != null)
+                wispItemButton.onClick.AddListener(() => GiveItemFromPrefab(wispItemPrefab));
 
             if (xpButton != null)
                 xpButton.onClick.AddListener(AddXP);
@@ -70,40 +80,37 @@ namespace Labyrinth.UI
                 menuPanel.SetActive(_isOpen);
         }
 
-        private void SpawnItem(ItemType type)
+        private void GiveItemFromPrefab(GameObject prefab)
         {
+            if (prefab == null)
+            {
+                Debug.LogWarning("CheatMenu: Item prefab not assigned!");
+                return;
+            }
+
             var player = GameObject.FindGameObjectWithTag("Player");
             if (player == null) return;
 
             var inventory = player.GetComponent<PlayerInventory>();
             if (inventory == null || inventory.IsFull) return;
 
-            InventoryItem item = null;
-            Sprite icon = GetItemIcon(type);
+            // Instantiate prefab temporarily to get the InventoryItem
+            var tempObj = Instantiate(prefab, Vector3.zero, Quaternion.identity);
+            tempObj.SetActive(false); // Disable to prevent any Start/Awake side effects
 
-            switch (type)
+            var baseItem = tempObj.GetComponent<BaseItem>();
+            if (baseItem != null)
             {
-                case ItemType.Speed:
-                    item = new InventoryItem(ItemType.Speed, icon, 3f, 8f);
-                    break;
-                case ItemType.Light:
-                    item = new InventoryItem(ItemType.Light, icon, 4f, 10f);
-                    break;
-                case ItemType.Heal:
-                    item = new InventoryItem(ItemType.Heal, icon, 1f, 0f);
-                    break;
-                case ItemType.Explosive:
-                    item = new InventoryItem(ItemType.Explosive, icon, 2f, 2f);
-                    break;
-                case ItemType.Pebbles:
-                    item = new InventoryItem(ItemType.Pebbles, icon, 0f, 0f, 3); // 3 uses
-                    break;
+                var inventoryItem = baseItem.CreateInventoryItem();
+                inventory.TryAddItem(inventoryItem);
+            }
+            else
+            {
+                Debug.LogWarning($"CheatMenu: Prefab {prefab.name} doesn't have a BaseItem component!");
             }
 
-            if (item != null)
-            {
-                inventory.TryAddItem(item);
-            }
+            // Clean up the temporary object
+            Destroy(tempObj);
         }
 
         private void AddXP()
@@ -136,45 +143,6 @@ namespace Labyrinth.UI
             }
         }
 
-        private Sprite GetItemIcon(ItemType type)
-        {
-            // Return assigned sprite if available
-            return type switch
-            {
-                ItemType.Speed when speedItemSprite != null => speedItemSprite,
-                ItemType.Light when lightItemSprite != null => lightItemSprite,
-                ItemType.Heal when healItemSprite != null => healItemSprite,
-                ItemType.Explosive when explosiveItemSprite != null => explosiveItemSprite,
-                ItemType.Pebbles when pebblesItemSprite != null => pebblesItemSprite,
-                _ => CreateFallbackIcon(type)
-            };
-        }
-
-        private Sprite CreateFallbackIcon(ItemType type)
-        {
-            var texture = new Texture2D(16, 16);
-            Color color = type switch
-            {
-                ItemType.Speed => Color.cyan,
-                ItemType.Light => Color.yellow,
-                ItemType.Heal => Color.green,
-                ItemType.Explosive => new Color(1f, 0.5f, 0f),
-                ItemType.Pebbles => Color.gray,
-                _ => Color.white
-            };
-
-            for (int x = 0; x < 16; x++)
-            {
-                for (int y = 0; y < 16; y++)
-                {
-                    texture.SetPixel(x, y, color);
-                }
-            }
-            texture.Apply();
-
-            return Sprite.Create(texture, new Rect(0, 0, 16, 16), new Vector2(0.5f, 0.5f), 16);
-        }
-
         private void OnDestroy()
         {
             if (toggleButton != null)
@@ -189,6 +157,10 @@ namespace Labyrinth.UI
                 explosiveItemButton.onClick.RemoveAllListeners();
             if (pebblesItemButton != null)
                 pebblesItemButton.onClick.RemoveAllListeners();
+            if (invisibilityItemButton != null)
+                invisibilityItemButton.onClick.RemoveAllListeners();
+            if (wispItemButton != null)
+                wispItemButton.onClick.RemoveAllListeners();
             if (xpButton != null)
                 xpButton.onClick.RemoveAllListeners();
             if (noClipButton != null)

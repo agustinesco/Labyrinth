@@ -74,6 +74,7 @@ namespace Labyrinth.Core
             if (CurrentState != GameState.Playing) return;
             CurrentState = GameState.Lost;
             OnGameLose?.Invoke();
+            StartCoroutine(ReturnToMainMenuAfterDelay(1.5f));
         }
 
         public void RestartGame()

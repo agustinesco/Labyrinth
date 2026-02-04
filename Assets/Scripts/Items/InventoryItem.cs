@@ -17,13 +17,19 @@ namespace Labyrinth.Items
         /// </summary>
         public int UsesRemaining { get; private set; }
 
-        public InventoryItem(ItemType type, Sprite icon, float effectValue, float duration, int uses = -1)
+        /// <summary>
+        /// Extra sprite for items that need it (e.g., light floor sprite for light items).
+        /// </summary>
+        public Sprite ExtraSprite { get; private set; }
+
+        public InventoryItem(ItemType type, Sprite icon, float effectValue, float duration, int uses = -1, Sprite extraSprite = null)
         {
             Type = type;
             Icon = icon;
             EffectValue = effectValue;
             Duration = duration;
             UsesRemaining = uses;
+            ExtraSprite = extraSprite;
         }
 
         /// <summary>

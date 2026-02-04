@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using Labyrinth.Core;
 
 namespace Labyrinth.Player
@@ -9,9 +10,16 @@ namespace Labyrinth.Player
         [SerializeField] private float invincibilityDuration = 1.5f;
         [SerializeField] private SpriteRenderer spriteRenderer;
 
+        [Header("Death Animation")]
+        [SerializeField] private float deathAnimationDuration = 1.5f;
+        [SerializeField] private float deathSpinSpeed = 720f;
+        [SerializeField] private float deathShrinkSpeed = 2f;
+        [SerializeField] private Color deathColor = Color.red;
+
         private int _currentHealth;
         private float _invincibilityTimer;
         private bool _isInvincible;
+        private bool _isPlayingDeathAnimation;
 
         public int CurrentHealth => _currentHealth;
         public int MaxHealth => maxHealth;
@@ -52,15 +60,14 @@ namespace Labyrinth.Player
 
         public void TakeDamage(int amount)
         {
-            if (_isInvincible || IsDead) return;
+            if (_isInvincible || IsDead || _isPlayingDeathAnimation) return;
 
             _currentHealth = Mathf.Max(0, _currentHealth - amount);
             OnHealthChanged?.Invoke(_currentHealth);
 
             if (IsDead)
             {
-                OnDeath?.Invoke();
-                GameManager.Instance?.TriggerLose();
+                StartCoroutine(PlayDeathAnimation());
             }
             else
             {
@@ -80,6 +87,59 @@ namespace Labyrinth.Player
         {
             _isInvincible = true;
             _invincibilityTimer = invincibilityDuration;
+        }
+
+        private IEnumerator PlayDeathAnimation()
+        {
+            _isPlayingDeathAnimation = true;
+            OnDeath?.Invoke();
+
+            // Disable player controls
+            var controller = GetComponent<PlayerController>();
+            if (controller != null)
+            {
+                controller.enabled = false;
+            }
+
+            // Ensure sprite is visible
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.enabled = true;
+            }
+
+            Vector3 originalScale = transform.localScale;
+            Color originalColor = spriteRenderer != null ? spriteRenderer.color : Color.white;
+            float elapsed = 0f;
+
+            while (elapsed < deathAnimationDuration)
+            {
+                elapsed += Time.deltaTime;
+                float progress = elapsed / deathAnimationDuration;
+
+                // Spin the player
+                transform.Rotate(0, 0, deathSpinSpeed * Time.deltaTime);
+
+                // Shrink the player
+                float scale = Mathf.Lerp(1f, 0f, progress);
+                transform.localScale = originalScale * scale;
+
+                // Fade to death color
+                if (spriteRenderer != null)
+                {
+                    spriteRenderer.color = Color.Lerp(originalColor, deathColor, progress);
+                }
+
+                yield return null;
+            }
+
+            // Hide the player
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.enabled = false;
+            }
+
+            // Trigger game over
+            GameManager.Instance?.TriggerLose();
         }
     }
 }

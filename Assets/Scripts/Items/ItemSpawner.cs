@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 using Labyrinth.Maze;
-using Labyrinth.Visibility;
 
 namespace Labyrinth.Items
 {
@@ -15,214 +14,254 @@ namespace Labyrinth.Items
         [SerializeField] private GameObject explosiveItemPrefab;
         [SerializeField] private GameObject xpItemPrefab;
         [SerializeField] private GameObject pebblesItemPrefab;
-
-        [Header("Item Sprites (for dynamic creation)")]
-        [SerializeField] private Sprite speedItemSprite;
-        [SerializeField] private Sprite lightItemSprite;
-        [SerializeField] private Sprite healItemSprite;
-        [SerializeField] private Sprite explosiveItemSprite;
-        [SerializeField] private Sprite keyItemSprite;
-        [SerializeField] private Sprite xpItemSprite;
-        [SerializeField] private Sprite pebblesItemSprite;
+        [SerializeField] private GameObject invisibilityItemPrefab;
+        [SerializeField] private GameObject wispItemPrefab;
 
         [Header("Spawn Counts")]
-        [SerializeField] private int speedItemCount = 3;
-        [SerializeField] private int lightSourceCount = 3;
-        [SerializeField] private int healItemCount = 2;
-        [SerializeField] private int explosiveItemCount = 2;
-        [SerializeField] private int xpItemCount = 15;
-        [SerializeField] private int pebblesItemCount = 2;
+        [SerializeField] private int speedItemCount = 6;
+        [SerializeField] private int lightSourceCount = 6;
+        [SerializeField] private int healItemCount = 4;
+        [SerializeField] private int explosiveItemCount = 4;
+        [SerializeField] private int xpItemCount = 45;
+        [SerializeField] private int pebblesItemCount = 4;
+        [SerializeField] private int invisibilityItemCount = 2;
+        [SerializeField] private int wispItemCount = 2;
+
+        [Header("Active Items (controls spawning)")]
+        [SerializeField] private bool speedItemActive = true;
+        [SerializeField] private bool lightSourceActive = true;
+        [SerializeField] private bool healItemActive = true;
+        [SerializeField] private bool explosiveItemActive = false;
+        [SerializeField] private bool xpItemActive = true;
+        [SerializeField] private bool pebblesItemActive = false;
+        [SerializeField] private bool invisibilityItemActive = true;
+        [SerializeField] private bool wispItemActive = true;
 
         public void SpawnItems(MazeGrid grid, Vector2 startPos, Vector2 exitPos)
         {
             // Spawn key at exit
-            Instantiate(keyItemPrefab, new Vector3(exitPos.x, exitPos.y, 0), Quaternion.identity);
+            SpawnItem(keyItemPrefab, exitPos);
 
-            // Find valid spawn positions (floor tiles, not start/exit)
-            var validPositions = new List<Vector2>();
-            for (int x = 0; x < grid.Width; x++)
+            // Find dead-end positions (corridor endings with only one connection)
+            var deadEndPositions = FindDeadEnds(grid, startPos, exitPos);
+
+            // Calculate total items needed (only count active items)
+            int totalItemsNeeded = 0;
+            if (speedItemActive) totalItemsNeeded += speedItemCount;
+            if (lightSourceActive) totalItemsNeeded += lightSourceCount;
+            if (healItemActive) totalItemsNeeded += healItemCount;
+            if (explosiveItemActive) totalItemsNeeded += explosiveItemCount;
+            if (xpItemActive) totalItemsNeeded += xpItemCount;
+            if (pebblesItemActive) totalItemsNeeded += pebblesItemCount;
+            if (invisibilityItemActive) totalItemsNeeded += invisibilityItemCount;
+            if (wispItemActive) totalItemsNeeded += wispItemCount;
+
+            // If not enough dead ends, add regular floor positions as fallback
+            if (deadEndPositions.Count < totalItemsNeeded)
             {
-                for (int y = 0; y < grid.Height; y++)
+                var floorPositions = FindFloorPositions(grid, startPos, exitPos, deadEndPositions);
+                ShuffleList(floorPositions);
+
+                // Add floor positions until we have enough
+                int needed = totalItemsNeeded - deadEndPositions.Count;
+                for (int i = 0; i < floorPositions.Count && i < needed; i++)
                 {
-                    var cell = grid.GetCell(x, y);
-                    if (!cell.IsWall && !cell.IsStart && !cell.IsExit)
-                    {
-                        validPositions.Add(new Vector2(x, y));
-                    }
+                    deadEndPositions.Add(floorPositions[i]);
                 }
             }
 
             // Shuffle positions
-            for (int i = validPositions.Count - 1; i > 0; i--)
-            {
-                int j = Random.Range(0, i + 1);
-                var temp = validPositions[i];
-                validPositions[i] = validPositions[j];
-                validPositions[j] = temp;
-            }
+            ShuffleList(deadEndPositions);
+
+            int posIndex = 0;
 
             // Spawn speed items
-            int spawned = 0;
-            for (int i = 0; i < validPositions.Count && spawned < speedItemCount; i++)
+            if (speedItemActive)
             {
-                var pos = validPositions[i];
-                Instantiate(speedItemPrefab, new Vector3(pos.x, pos.y, 0), Quaternion.identity);
-                spawned++;
+                for (int i = 0; i < speedItemCount && posIndex < deadEndPositions.Count; i++, posIndex++)
+                {
+                    SpawnItem(speedItemPrefab, deadEndPositions[posIndex]);
+                }
             }
 
             // Spawn light sources
-            int lightSpawned = 0;
-            for (int i = spawned; i < validPositions.Count && lightSpawned < lightSourceCount; i++)
+            if (lightSourceActive)
             {
-                var pos = validPositions[i];
-                if (lightSourcePrefab != null)
+                for (int i = 0; i < lightSourceCount && posIndex < deadEndPositions.Count; i++, posIndex++)
                 {
-                    Debug.Log($"ItemSpawner: Spawning light from prefab at {pos}");
-                    Instantiate(lightSourcePrefab, new Vector3(pos.x, pos.y, 0), Quaternion.identity);
+                    SpawnItem(lightSourcePrefab, deadEndPositions[posIndex]);
                 }
-                else
-                {
-                    // Create dynamically if no prefab
-                    Debug.Log($"ItemSpawner: Creating light dynamically at {pos}");
-                    var lightObj = new GameObject("LightSourceItem");
-                    lightObj.transform.position = new Vector3(pos.x, pos.y, 0);
-                    var sr = lightObj.AddComponent<SpriteRenderer>();
-                    sr.sprite = lightItemSprite != null ? lightItemSprite : CreateSquareSprite();
-                    sr.color = Color.white;
-                    sr.sortingOrder = 5;
-                    lightObj.transform.localScale = Vector3.one * 0.6f;
-                    var collider = lightObj.AddComponent<BoxCollider2D>();
-                    collider.isTrigger = true;
-                    collider.size = Vector2.one;
-                    lightObj.AddComponent<LightSourceItem>();
-                    lightObj.AddComponent<Visibility.VisibilityAwareEntity>();
-                }
-                lightSpawned++;
             }
-            spawned += lightSpawned;
 
             // Spawn heal items
-            int healSpawned = 0;
-            for (int i = spawned; i < validPositions.Count && healSpawned < healItemCount; i++)
+            if (healItemActive)
             {
-                var pos = validPositions[i];
-                if (healItemPrefab != null)
+                for (int i = 0; i < healItemCount && posIndex < deadEndPositions.Count; i++, posIndex++)
                 {
-                    Instantiate(healItemPrefab, new Vector3(pos.x, pos.y, 0), Quaternion.identity);
+                    SpawnItem(healItemPrefab, deadEndPositions[posIndex]);
                 }
-                else
-                {
-                    // Create dynamically if no prefab
-                    var healObj = new GameObject("HealItem");
-                    healObj.transform.position = new Vector3(pos.x, pos.y, 0);
-                    var sr = healObj.AddComponent<SpriteRenderer>();
-                    sr.sprite = healItemSprite != null ? healItemSprite : CreateSquareSprite();
-                    sr.color = Color.white;
-                    sr.sortingOrder = 5;
-                    healObj.transform.localScale = Vector3.one * 0.6f;
-                    var healCollider = healObj.AddComponent<BoxCollider2D>();
-                    healCollider.isTrigger = true;
-                    healCollider.size = Vector2.one;
-                    healObj.AddComponent<HealItem>();
-                    healObj.AddComponent<Visibility.VisibilityAwareEntity>();
-                }
-                healSpawned++;
             }
-            spawned += healSpawned;
 
             // Spawn explosive items
-            int explosiveSpawned = 0;
-            for (int i = spawned; i < validPositions.Count && explosiveSpawned < explosiveItemCount; i++)
+            if (explosiveItemActive)
             {
-                var pos = validPositions[i];
-                if (explosiveItemPrefab != null)
+                for (int i = 0; i < explosiveItemCount && posIndex < deadEndPositions.Count; i++, posIndex++)
                 {
-                    Instantiate(explosiveItemPrefab, new Vector3(pos.x, pos.y, 0), Quaternion.identity);
+                    SpawnItem(explosiveItemPrefab, deadEndPositions[posIndex]);
                 }
-                else
-                {
-                    // Create dynamically if no prefab
-                    var explosiveObj = new GameObject("ExplosiveItem");
-                    explosiveObj.transform.position = new Vector3(pos.x, pos.y, 0);
-                    var sr = explosiveObj.AddComponent<SpriteRenderer>();
-                    sr.sprite = explosiveItemSprite != null ? explosiveItemSprite : CreateSquareSprite();
-                    sr.color = Color.white;
-                    sr.sortingOrder = 5;
-                    explosiveObj.transform.localScale = Vector3.one * 0.6f;
-                    var explosiveCollider = explosiveObj.AddComponent<BoxCollider2D>();
-                    explosiveCollider.isTrigger = true;
-                    explosiveCollider.size = Vector2.one;
-                    explosiveObj.AddComponent<ExplosiveItem>();
-                    explosiveObj.AddComponent<Visibility.VisibilityAwareEntity>();
-                }
-                explosiveSpawned++;
             }
-            spawned += explosiveSpawned;
 
             // Spawn XP items
-            int xpSpawned = 0;
-            for (int i = spawned; i < validPositions.Count && xpSpawned < xpItemCount; i++)
+            if (xpItemActive)
             {
-                var pos = validPositions[i];
-                if (xpItemPrefab != null)
+                for (int i = 0; i < xpItemCount && posIndex < deadEndPositions.Count; i++, posIndex++)
                 {
-                    Instantiate(xpItemPrefab, new Vector3(pos.x, pos.y, 0), Quaternion.identity);
+                    SpawnItem(xpItemPrefab, deadEndPositions[posIndex]);
                 }
-                else
-                {
-                    // Create dynamically if no prefab
-                    var xpObj = new GameObject("XPItem");
-                    xpObj.transform.position = new Vector3(pos.x, pos.y, 0);
-                    var sr = xpObj.AddComponent<SpriteRenderer>();
-                    sr.sprite = xpItemSprite != null ? xpItemSprite : CreateSquareSprite();
-                    sr.color = Color.white;
-                    sr.sortingOrder = 5;
-                    xpObj.transform.localScale = Vector3.one * 0.4f;
-                    var xpCollider = xpObj.AddComponent<BoxCollider2D>();
-                    xpCollider.isTrigger = true;
-                    xpCollider.size = Vector2.one;
-                    xpObj.AddComponent<XPItem>();
-                    xpObj.AddComponent<Visibility.VisibilityAwareEntity>();
-                }
-                xpSpawned++;
             }
-            spawned += xpSpawned;
 
             // Spawn pebbles items
-            int pebblesSpawned = 0;
-            for (int i = spawned; i < validPositions.Count && pebblesSpawned < pebblesItemCount; i++)
+            if (pebblesItemActive)
             {
-                var pos = validPositions[i];
-                if (pebblesItemPrefab != null)
+                for (int i = 0; i < pebblesItemCount && posIndex < deadEndPositions.Count; i++, posIndex++)
                 {
-                    Instantiate(pebblesItemPrefab, new Vector3(pos.x, pos.y, 0), Quaternion.identity);
+                    SpawnItem(pebblesItemPrefab, deadEndPositions[posIndex]);
                 }
-                else
-                {
-                    // Create dynamically if no prefab
-                    var pebblesObj = new GameObject("PebblesItem");
-                    pebblesObj.transform.position = new Vector3(pos.x, pos.y, 0);
-                    var sr = pebblesObj.AddComponent<SpriteRenderer>();
-                    sr.sprite = pebblesItemSprite != null ? pebblesItemSprite : CreateSquareSprite();
-                    sr.color = Color.white;
-                    sr.sortingOrder = 5;
-                    pebblesObj.transform.localScale = Vector3.one * 0.6f;
-                    var pebblesCollider = pebblesObj.AddComponent<BoxCollider2D>();
-                    pebblesCollider.isTrigger = true;
-                    pebblesCollider.size = Vector2.one;
-                    pebblesObj.AddComponent<PebblesItem>();
-                    pebblesObj.AddComponent<Visibility.VisibilityAwareEntity>();
-                }
-                pebblesSpawned++;
             }
+
+            // Spawn invisibility items
+            if (invisibilityItemActive)
+            {
+                for (int i = 0; i < invisibilityItemCount && posIndex < deadEndPositions.Count; i++, posIndex++)
+                {
+                    SpawnItem(invisibilityItemPrefab, deadEndPositions[posIndex]);
+                }
+            }
+
+            // Spawn wisp items
+            if (wispItemActive)
+            {
+                for (int i = 0; i < wispItemCount && posIndex < deadEndPositions.Count; i++, posIndex++)
+                {
+                    SpawnItem(wispItemPrefab, deadEndPositions[posIndex]);
+                }
+            }
+
+            Debug.Log($"ItemSpawner: Found {deadEndPositions.Count} dead ends, spawned items at {posIndex} locations");
         }
 
-        private Sprite CreateSquareSprite()
+        private void SpawnItem(GameObject prefab, Vector2 position)
         {
-            var texture = new Texture2D(1, 1);
-            texture.SetPixel(0, 0, Color.white);
-            texture.Apply();
-            return Sprite.Create(texture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1);
+            if (prefab == null) return;
+            Instantiate(prefab, new Vector3(position.x, position.y, 0), Quaternion.identity);
+        }
+
+        /// <summary>
+        /// Finds all dead-end positions in the maze.
+        /// A dead-end is the center of a 3x3 floor area that has only one exit direction.
+        /// </summary>
+        private List<Vector2> FindDeadEnds(MazeGrid grid, Vector2 startPos, Vector2 exitPos)
+        {
+            var deadEnds = new List<Vector2>();
+
+            for (int x = 1; x < grid.Width - 1; x++)
+            {
+                for (int y = 1; y < grid.Height - 1; y++)
+                {
+                    // Skip if center is a wall
+                    if (grid.GetCell(x, y).IsWall)
+                        continue;
+
+                    // Skip start and exit positions
+                    if (IsNearPosition(x, y, startPos, 2) || IsNearPosition(x, y, exitPos, 2))
+                        continue;
+
+                    // Check if this is a dead-end (corridor ending)
+                    if (IsDeadEnd(grid, x, y))
+                    {
+                        deadEnds.Add(new Vector2(x + 0.5f, y + 0.5f));
+                    }
+                }
+            }
+
+            return deadEnds;
+        }
+
+        /// <summary>
+        /// Checks if a floor tile is a dead-end (has only one exit direction).
+        /// </summary>
+        private bool IsDeadEnd(MazeGrid grid, int x, int y)
+        {
+            int connections = 0;
+
+            if (!IsWallAt(grid, x - 1, y)) connections++;
+            if (!IsWallAt(grid, x + 1, y)) connections++;
+            if (!IsWallAt(grid, x, y - 1)) connections++;
+            if (!IsWallAt(grid, x, y + 1)) connections++;
+
+            return connections == 1;
+        }
+
+        private bool IsWallAt(MazeGrid grid, int x, int y)
+        {
+            if (!grid.IsInBounds(x, y))
+                return true;
+            return grid.GetCell(x, y).IsWall;
+        }
+
+        private bool IsNearPosition(int x, int y, Vector2 pos, int distance)
+        {
+            return Mathf.Abs(x - pos.x) <= distance && Mathf.Abs(y - pos.y) <= distance;
+        }
+
+        /// <summary>
+        /// Finds all valid floor positions (not start, not exit, not already in deadEnds list).
+        /// </summary>
+        private List<Vector2> FindFloorPositions(MazeGrid grid, Vector2 startPos, Vector2 exitPos, List<Vector2> excludePositions)
+        {
+            var floorPositions = new List<Vector2>();
+
+            for (int x = 1; x < grid.Width - 1; x++)
+            {
+                for (int y = 1; y < grid.Height - 1; y++)
+                {
+                    if (grid.GetCell(x, y).IsWall)
+                        continue;
+
+                    if (IsNearPosition(x, y, startPos, 3) || IsNearPosition(x, y, exitPos, 2))
+                        continue;
+
+                    var pos = new Vector2(x + 0.5f, y + 0.5f);
+
+                    bool excluded = false;
+                    foreach (var excludePos in excludePositions)
+                    {
+                        if (Vector2.Distance(pos, excludePos) < 1f)
+                        {
+                            excluded = true;
+                            break;
+                        }
+                    }
+
+                    if (!excluded)
+                    {
+                        floorPositions.Add(pos);
+                    }
+                }
+            }
+
+            return floorPositions;
+        }
+
+        private void ShuffleList<T>(List<T> list)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = Random.Range(0, i + 1);
+                var temp = list[i];
+                list[i] = list[j];
+                list[j] = temp;
+            }
         }
     }
 }

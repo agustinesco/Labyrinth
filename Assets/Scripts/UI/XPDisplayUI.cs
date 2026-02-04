@@ -4,16 +4,27 @@ using Labyrinth.Leveling;
 
 namespace Labyrinth.UI
 {
+    /// <summary>
+    /// Displays player XP as a progress bar.
+    /// Uses tiled sprites for the bar body and end cap sprites for decoration.
+    /// </summary>
     public class XPDisplayUI : MonoBehaviour
     {
-        [Header("UI References")]
-        [SerializeField] private Text levelText;
-        [SerializeField] private Text xpText;
+        [Header("Bar References")]
+        [SerializeField] private Image backgroundImage;
+        [SerializeField] private Image fillImage;
+        [SerializeField] private RectTransform fillRect;
+        [SerializeField] private RectTransform fillEndRect;
+
+        [Header("Bar Settings")]
+        [SerializeField] private float fillEndWidth = 8f;
 
         private bool _isSubscribed;
+        private RectTransform _rectTransform;
 
         private void Start()
         {
+            _rectTransform = GetComponent<RectTransform>();
             TrySubscribe();
         }
 
@@ -32,13 +43,12 @@ namespace Labyrinth.UI
 
             if (PlayerLevelSystem.Instance != null)
             {
-                PlayerLevelSystem.Instance.OnXPChanged += UpdateXPDisplay;
-                PlayerLevelSystem.Instance.OnLevelUp += UpdateLevelDisplay;
+                PlayerLevelSystem.Instance.OnXPChanged += UpdateXPBar;
+                PlayerLevelSystem.Instance.OnLevelUp += OnLevelUp;
                 _isSubscribed = true;
 
                 // Initialize display
-                UpdateLevelDisplay(PlayerLevelSystem.Instance.CurrentLevel);
-                UpdateXPDisplay(PlayerLevelSystem.Instance.CurrentXP, PlayerLevelSystem.Instance.XPForNextLevel);
+                UpdateXPBar(PlayerLevelSystem.Instance.CurrentXP, PlayerLevelSystem.Instance.XPForNextLevel);
             }
         }
 
@@ -46,24 +56,53 @@ namespace Labyrinth.UI
         {
             if (_isSubscribed && PlayerLevelSystem.Instance != null)
             {
-                PlayerLevelSystem.Instance.OnXPChanged -= UpdateXPDisplay;
-                PlayerLevelSystem.Instance.OnLevelUp -= UpdateLevelDisplay;
+                PlayerLevelSystem.Instance.OnXPChanged -= UpdateXPBar;
+                PlayerLevelSystem.Instance.OnLevelUp -= OnLevelUp;
             }
         }
 
-        private void UpdateLevelDisplay(int level)
+        private void OnLevelUp(int level)
         {
-            if (levelText != null)
+            // Reset bar on level up, then update with new values
+            if (PlayerLevelSystem.Instance != null)
             {
-                levelText.text = $"Lv.{level}";
+                UpdateXPBar(PlayerLevelSystem.Instance.CurrentXP, PlayerLevelSystem.Instance.XPForNextLevel);
             }
         }
 
-        private void UpdateXPDisplay(int currentXP, int xpForNextLevel)
+        /// <summary>
+        /// Updates the XP bar fill based on current progress.
+        /// </summary>
+        private void UpdateXPBar(int currentXP, int xpForNextLevel)
         {
-            if (xpText != null)
+            if (fillRect == null) return;
+
+            float progress = xpForNextLevel > 0 ? (float)currentXP / xpForNextLevel : 0f;
+            progress = Mathf.Clamp01(progress);
+
+            // Get the current bar width from RectTransform (responsive)
+            float barWidth = _rectTransform != null ? _rectTransform.rect.width : 200f;
+
+            // Calculate fill width (leaving room for end cap)
+            float maxFillWidth = barWidth - fillEndWidth;
+            float fillWidth = maxFillWidth * progress;
+
+            // Ensure minimum width when there's any progress
+            if (progress > 0 && fillWidth < 4f)
             {
-                xpText.text = $"{currentXP}/{xpForNextLevel}";
+                fillWidth = 4f;
+            }
+
+            // Update fill tiled section width
+            fillRect.sizeDelta = new Vector2(fillWidth, fillRect.sizeDelta.y);
+
+            // Position the fill end cap at the right edge of the fill
+            if (fillEndRect != null)
+            {
+                fillEndRect.anchoredPosition = new Vector2(fillWidth, 0);
+
+                // Hide end cap when no progress
+                fillEndRect.gameObject.SetActive(progress > 0);
             }
         }
     }

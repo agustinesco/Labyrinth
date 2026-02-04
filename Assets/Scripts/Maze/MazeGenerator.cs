@@ -8,11 +8,13 @@ namespace Labyrinth.Maze
         private readonly int _width;
         private readonly int _height;
         private readonly int _corridorWidth;
+        private readonly float _branchingFactor;
         private MazeGrid _grid;
         private System.Random _random;
 
         // Step size is corridorWidth + 1 (corridor + wall between corridors)
         private (int dx, int dy)[] _directions;
+        private int _step;
 
         // Key room properties
         private const int RoomSize = 9;
@@ -20,7 +22,18 @@ namespace Labyrinth.Maze
         private int _roomCenterY;
         private List<(int x, int y, int dx, int dy)> _roomEntrances;
 
-        public MazeGenerator(int width, int height, int? seed = null, int corridorWidth = 1)
+        /// <summary>
+        /// Creates a new maze generator.
+        /// </summary>
+        /// <param name="width">Maze width in cells</param>
+        /// <param name="height">Maze height in cells</param>
+        /// <param name="seed">Random seed for reproducible mazes</param>
+        /// <param name="corridorWidth">Width of corridors (will be made odd)</param>
+        /// <param name="branchingFactor">
+        /// Controls maze branching: 0.0 = long winding corridors (DFS),
+        /// 1.0 = maximum bifurcations (Prim's-like). Default 0.0.
+        /// </param>
+        public MazeGenerator(int width, int height, int? seed = null, int corridorWidth = 1, float branchingFactor = 0f)
         {
             _width = width;
             _height = height;
@@ -30,16 +43,19 @@ namespace Labyrinth.Maze
             if (_corridorWidth % 2 == 0)
                 _corridorWidth += 1; // Make it odd
 
+            // Clamp branching factor between 0 and 1
+            _branchingFactor = Mathf.Clamp01(branchingFactor);
+
             _random = seed.HasValue ? new System.Random(seed.Value) : new System.Random();
 
             // Wall thickness scales with corridor width (minimum 1)
             int wallThickness = Mathf.Max(1, _corridorWidth / 2);
 
             // Step size: corridor width + wall thickness
-            int step = _corridorWidth + wallThickness;
+            _step = _corridorWidth + wallThickness;
             _directions = new (int, int)[]
             {
-                (0, step), (step, 0), (0, -step), (-step, 0)
+                (0, _step), (_step, 0), (0, -_step), (-_step, 0)
             };
         }
 
@@ -55,7 +71,8 @@ namespace Labyrinth.Maze
             int startX = 1 + halfWidth;
             int startY = 1 + halfWidth;
 
-            CarvePassage(startX, startY);
+            // Use Growing Tree algorithm with configurable branching
+            GrowingTreeGenerate(startX, startY);
 
             // Connect room entrances to the maze
             ConnectRoomToMaze();
@@ -69,27 +86,154 @@ namespace Labyrinth.Maze
             return _grid;
         }
 
-        private void CarvePassage(int x, int y)
+        /// <summary>
+        /// Removes grass (floor) tiles that are adjacent to exactly 3 other grass tiles.
+        /// This cleans up certain unwanted configurations in the maze.
+        /// </summary>
+        private void RemoveTripleAdjacentGrass()
         {
-            // Carve a corridor-width area at this position
-            CarveArea(x, y);
-            _grid.GetCell(x, y).IsVisited = true;
+            // Collect tiles to convert (don't modify while iterating)
+            var tilesToConvert = new List<(int x, int y)>();
 
-            var directions = ShuffleDirections();
-
-            foreach (var (dx, dy) in directions)
+            for (int x = 1; x < _width - 1; x++)
             {
-                int newX = x + dx;
-                int newY = y + dy;
-
-                if (IsValidCarveTarget(newX, newY))
+                for (int y = 1; y < _height - 1; y++)
                 {
-                    // Carve the corridor between current cell and new cell
-                    CarveCorridorBetween(x, y, newX, newY);
+                    var cell = _grid.GetCell(x, y);
 
-                    CarvePassage(newX, newY);
+                    // Skip walls, start, exit, and key room tiles
+                    if (cell.IsWall || cell.IsStart || cell.IsExit || cell.IsKeyRoom)
+                        continue;
+
+                    // Count adjacent grass tiles (cardinal directions)
+                    int adjacentGrassCount = CountAdjacentGrass(x, y);
+
+                    if (adjacentGrassCount == 3)
+                    {
+                        tilesToConvert.Add((x, y));
+                    }
                 }
             }
+
+            // Convert collected tiles to walls
+            foreach (var (x, y) in tilesToConvert)
+            {
+                _grid.GetCell(x, y).IsWall = true;
+            }
+        }
+
+        /// <summary>
+        /// Counts how many adjacent tiles (cardinal directions) are grass (non-wall).
+        /// </summary>
+        private int CountAdjacentGrass(int x, int y)
+        {
+            int count = 0;
+            int[] dx = { 0, 1, 0, -1 };
+            int[] dy = { 1, 0, -1, 0 };
+
+            for (int i = 0; i < 4; i++)
+            {
+                int nx = x + dx[i];
+                int ny = y + dy[i];
+
+                if (_grid.IsInBounds(nx, ny) && !_grid.GetCell(nx, ny).IsWall)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        /// <summary>
+        /// Growing Tree algorithm - a hybrid between DFS and Prim's algorithm.
+        /// The branchingFactor controls the selection strategy:
+        /// - 0.0: Always pick the newest cell (pure DFS = long corridors)
+        /// - 1.0: Always pick a random cell (Prim's-like = maximum branching)
+        /// - 0.5: 50% chance of either (balanced)
+        /// </summary>
+        private void GrowingTreeGenerate(int startX, int startY)
+        {
+            var activeCells = new List<(int x, int y)>();
+
+            // Start with the initial cell
+            CarveArea(startX, startY);
+            _grid.GetCell(startX, startY).IsVisited = true;
+            activeCells.Add((startX, startY));
+
+            while (activeCells.Count > 0)
+            {
+                // Select cell based on branching factor
+                int index = SelectCellIndex(activeCells.Count);
+                var (x, y) = activeCells[index];
+
+                // Find valid neighbors
+                var validNeighbors = GetValidNeighbors(x, y);
+
+                if (validNeighbors.Count > 0)
+                {
+                    // Pick a random valid neighbor
+                    var (nx, ny) = validNeighbors[_random.Next(validNeighbors.Count)];
+
+                    // Carve corridor to the neighbor
+                    CarveCorridorBetween(x, y, nx, ny);
+                    CarveArea(nx, ny);
+                    _grid.GetCell(nx, ny).IsVisited = true;
+
+                    // Add the new cell to active list
+                    activeCells.Add((nx, ny));
+                }
+                else
+                {
+                    // No valid neighbors, remove this cell from active list
+                    activeCells.RemoveAt(index);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Selects which cell index to use based on branching factor.
+        /// - branchingFactor = 0: Always return last index (newest = DFS)
+        /// - branchingFactor = 1: Always return random index (Prim's)
+        /// - branchingFactor = 0.5: 50% chance of either
+        /// </summary>
+        private int SelectCellIndex(int count)
+        {
+            if (count == 1)
+                return 0;
+
+            // Roll to determine selection method
+            if (_random.NextDouble() < _branchingFactor)
+            {
+                // Random selection (more branching)
+                return _random.Next(count);
+            }
+            else
+            {
+                // Newest selection (DFS, long corridors)
+                return count - 1;
+            }
+        }
+
+        /// <summary>
+        /// Gets all valid unvisited neighbors for a cell.
+        /// </summary>
+        private List<(int x, int y)> GetValidNeighbors(int x, int y)
+        {
+            var neighbors = new List<(int x, int y)>();
+
+            foreach (var (dx, dy) in _directions)
+            {
+                int nx = x + dx;
+                int ny = y + dy;
+
+                if (IsValidCarveTarget(nx, ny))
+                {
+                    neighbors.Add((nx, ny));
+                }
+            }
+
+            return neighbors;
         }
 
         private void CarveArea(int centerX, int centerY)

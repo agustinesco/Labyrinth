@@ -8,11 +8,18 @@ namespace Labyrinth.Items
         [SerializeField] private float lightRadius = 4f;
         [SerializeField] private float searchRadius = 10f;
         [SerializeField] private Color lightColor = new Color(1f, 0.9f, 0.6f); // Warm yellow
+        [SerializeField] private Sprite lightFloorSprite;
+        [SerializeField] private int charges = 3;
 
         public override ItemType ItemType => ItemType.Light;
 
         // Light sources are stored and used from inventory
         public override bool IsStorable => true;
+
+        public void SetLightFloorSprite(Sprite sprite)
+        {
+            lightFloorSprite = sprite;
+        }
 
         protected override void Start()
         {
@@ -25,8 +32,10 @@ namespace Labyrinth.Items
             return new InventoryItem(
                 ItemType.Light,
                 itemIcon,
-                lightRadius,  // EffectValue stores the light radius
-                0f            // Duration not used
+                lightRadius,      // EffectValue stores the light radius
+                0f,               // Duration not used
+                charges,          // Number of uses
+                lightFloorSprite  // Extra sprite for placed light
             );
         }
 
@@ -92,10 +101,10 @@ namespace Labyrinth.Items
             PlacedLightSource lightSource = lightObj.AddComponent<PlacedLightSource>();
             lightSource.Initialize(lightRadius);
 
-            // Add a visual indicator (small glowing sprite)
+            // Add a visual indicator
             SpriteRenderer sr = lightObj.AddComponent<SpriteRenderer>();
-            sr.sprite = CreateLightSprite();
-            sr.color = lightColor;
+            sr.sprite = lightFloorSprite != null ? lightFloorSprite : CreateFallbackLightSprite();
+            sr.color = Color.white;
             sr.sortingOrder = 10;
             lightObj.transform.localScale = Vector3.one * 0.5f;
 
@@ -103,9 +112,9 @@ namespace Labyrinth.Items
             lightObj.AddComponent<VisibilityAwareEntity>();
         }
 
-        private Sprite CreateLightSprite()
+        private Sprite CreateFallbackLightSprite()
         {
-            // Create a simple circular sprite for the light indicator
+            // Fallback: Create a simple circular sprite if no sprite assigned
             int size = 32;
             Texture2D texture = new Texture2D(size, size);
             Vector2 center = new Vector2(size / 2f, size / 2f);

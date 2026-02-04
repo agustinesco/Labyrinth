@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: 106846506873905017}
   - component: {fileID: 3190966995660286899}
   - component: {fileID: 2861797412222040077}
+  - component: {fileID: 8959837994664888626}
+  - component: {fileID: 4077655922865085960}
   m_Layer: 0
   m_Name: PatrollingGuard
   m_TagString: Enemy
@@ -144,6 +146,9 @@ MonoBehaviour:
     m_Bits: 256
   pathRecalculateInterval: 0.3
   losePlayerTime: 3
+  searchDuration: 3
+  lookAroundInterval: 0.75
+  lookDirections: 4
   damage: 1
   attackCooldown: 2
 --- !u!114 &2861797412222040077
@@ -161,3 +166,36 @@ MonoBehaviour:
   visibilityThreshold: 0.1
   fadeInsteadOfHide: 0
   fadeSpeed: 5
+--- !u!95 &8959837994664888626
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1492281182213793184}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: d5f21567934c6430296d8d4c5d76b890, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &4077655922865085960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1492281182213793184}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db08341b515df4eb08fd4cb393bc20b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

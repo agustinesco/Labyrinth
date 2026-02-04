@@ -6,23 +6,26 @@ using Labyrinth.Player;
 using Labyrinth.Core;
 using Labyrinth.UI;
 using Labyrinth.Traps;
+using Labyrinth.Visibility;
 
 namespace Labyrinth.Maze
 {
     public class MazeInitializer : MonoBehaviour
     {
-        [SerializeField] private int mazeWidth = 25;
-        [SerializeField] private int mazeHeight = 25;
-        [SerializeField] private int corridorWidth = 3;
+        [SerializeField, Tooltip("Maze generation configuration asset")]
+        private MazeGeneratorConfig mazeConfig;
+
         [SerializeField] private MazeRenderer mazeRenderer;
         [SerializeField] private ItemSpawner itemSpawner;
         [SerializeField] private TrapSpawner trapSpawner;
         [SerializeField] private EnemySpawner enemySpawner;
         [SerializeField] private PatrollingGuardSpawner patrollingGuardSpawner;
+        [SerializeField] private BlindMoleSpawner blindMoleSpawner;
         [SerializeField] private GameObject playerPrefab;
         [SerializeField] private CameraFollow cameraFollow;
         [SerializeField] private HealthDisplay healthDisplay;
         [SerializeField] private VirtualJoystick virtualJoystick;
+        [SerializeField] private FogOfWarManager fogOfWarManager;
 
         public MazeGrid Grid { get; private set; }
 
@@ -33,20 +36,22 @@ namespace Labyrinth.Maze
 
         private void GenerateMaze()
         {
-            // Validate and clamp corridor width
-            // Max corridor width is 1/4 of the smallest maze dimension to ensure proper maze generation
-            int maxCorridorWidth = Mathf.Min(mazeWidth, mazeHeight) / 4;
-            int validCorridorWidth = Mathf.Clamp(corridorWidth, 1, maxCorridorWidth);
-
-            if (validCorridorWidth != corridorWidth)
+            if (mazeConfig == null)
             {
-                Debug.LogWarning($"Corridor width {corridorWidth} clamped to {validCorridorWidth} for maze size {mazeWidth}x{mazeHeight}");
+                Debug.LogError("[MazeInitializer] No MazeGeneratorConfig assigned!");
+                return;
             }
 
-            // Generate maze with specified corridor width
-            var generator = new MazeGenerator(mazeWidth, mazeHeight, corridorWidth: validCorridorWidth);
+            // Generate maze using config
+            var generator = mazeConfig.CreateGenerator();
             Grid = generator.Generate();
             mazeRenderer.RenderMaze(Grid);
+
+            // Update fog of war to match maze size
+            if (fogOfWarManager != null)
+            {
+                fogOfWarManager.SetMazeDimensions(mazeConfig.Width, mazeConfig.Height);
+            }
 
             // Spawn player
             var playerObj = Instantiate(playerPrefab,
@@ -58,7 +63,7 @@ namespace Labyrinth.Maze
             if (cameraFollow != null)
             {
                 cameraFollow.SetTarget(playerObj.transform);
-                cameraFollow.SetBounds(mazeWidth, mazeHeight);
+                cameraFollow.SetBounds(mazeConfig.Width, mazeConfig.Height);
             }
 
             // Set up health display
@@ -90,7 +95,7 @@ namespace Labyrinth.Maze
             // Spawn traps
             if (trapSpawner != null)
             {
-                trapSpawner.SpawnTraps(Grid, mazeRenderer.StartPosition, mazeRenderer.ExitPosition, validCorridorWidth);
+                trapSpawner.SpawnTraps(Grid, mazeRenderer.StartPosition, mazeRenderer.ExitPosition, mazeConfig.GetValidatedCorridorWidth());
             }
 
             // Initialize enemy spawner
@@ -103,6 +108,12 @@ namespace Labyrinth.Maze
             if (patrollingGuardSpawner != null)
             {
                 patrollingGuardSpawner.SpawnGuards(Grid, mazeRenderer.StartPosition, mazeRenderer.ExitPosition, playerObj.transform);
+            }
+
+            // Spawn blind moles at 4-way intersections
+            if (blindMoleSpawner != null)
+            {
+                blindMoleSpawner.SpawnMoles(Grid);
             }
         }
 

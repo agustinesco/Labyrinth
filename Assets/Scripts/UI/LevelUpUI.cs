@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.UI;
+using TMPro;
 using System.Collections.Generic;
 using Labyrinth.Leveling;
 
@@ -9,18 +9,23 @@ namespace Labyrinth.UI
     {
         [Header("Panel References")]
         [SerializeField] private GameObject levelUpPanel;
-        [SerializeField] private Text levelText;
+        [SerializeField] private TMP_Text levelText;
 
-        [Header("Card References")]
-        [SerializeField] private Button[] cardButtons;
-        [SerializeField] private Image[] cardBackgrounds;
-        [SerializeField] private Image[] cardIcons;
-        [SerializeField] private Text[] cardTitles;
-        [SerializeField] private Text[] cardDescriptions;
+        [Header("Card Setup")]
+        [SerializeField] private LevelUpCard cardPrefab;
+        [SerializeField] private Transform cardsContainer;
+        [SerializeField] private int numberOfCards = 3;
 
-        private List<Upgrade> _currentUpgrades;
+        private List<LevelUpCard> _cardInstances = new List<LevelUpCard>();
+        private List<LevelUpUpgrade> _currentUpgrades;
         private float _previousTimeScale;
         private bool _isSubscribed;
+
+        private void Awake()
+        {
+            // Subscribe early - Awake runs even on inactive objects
+            TrySubscribe();
+        }
 
         private void Start()
         {
@@ -29,16 +34,33 @@ namespace Labyrinth.UI
                 levelUpPanel.SetActive(false);
             }
 
-            TrySubscribe();
+            CreateCardInstances();
+        }
 
-            // Set up card button listeners
-            for (int i = 0; i < cardButtons.Length; i++)
+        private void CreateCardInstances()
+        {
+            if (cardPrefab == null || cardsContainer == null)
             {
-                int index = i; // Capture for closure
-                if (cardButtons[i] != null)
+                Debug.LogError("LevelUpUI: cardPrefab or cardsContainer is not assigned!");
+                return;
+            }
+
+            // Clear existing cards
+            foreach (var card in _cardInstances)
+            {
+                if (card != null)
                 {
-                    cardButtons[i].onClick.AddListener(() => OnCardSelected(index));
+                    Destroy(card.gameObject);
                 }
+            }
+            _cardInstances.Clear();
+
+            // Create new card instances
+            for (int i = 0; i < numberOfCards; i++)
+            {
+                var cardInstance = Instantiate(cardPrefab, cardsContainer);
+                cardInstance.gameObject.SetActive(false);
+                _cardInstances.Add(cardInstance);
             }
         }
 
@@ -97,35 +119,25 @@ namespace Labyrinth.UI
             }
 
             // Get random upgrades
-            _currentUpgrades = UpgradeManager.Instance.GetRandomUpgrades(3);
+            _currentUpgrades = UpgradeManager.Instance.GetRandomUpgrades(numberOfCards);
 
-            // Update card displays
-            for (int i = 0; i < cardButtons.Length && i < _currentUpgrades.Count; i++)
+            // Ensure we have card instances
+            if (_cardInstances.Count == 0)
             {
-                var upgrade = _currentUpgrades[i];
+                CreateCardInstances();
+            }
 
-                // Set card background to a darker version of the upgrade color
-                if (cardBackgrounds != null && i < cardBackgrounds.Length && cardBackgrounds[i] != null)
+            // Setup card displays
+            for (int i = 0; i < _cardInstances.Count; i++)
+            {
+                if (i < _currentUpgrades.Count)
                 {
-                    Color bgColor = upgrade.CardColor * 0.3f;
-                    bgColor.a = 0.95f;
-                    cardBackgrounds[i].color = bgColor;
+                    _cardInstances[i].gameObject.SetActive(true);
+                    _cardInstances[i].Setup(_currentUpgrades[i], OnCardSelected);
                 }
-
-                // Set icon to the upgrade color
-                if (cardIcons != null && i < cardIcons.Length && cardIcons[i] != null)
+                else
                 {
-                    cardIcons[i].color = upgrade.CardColor;
-                }
-
-                if (cardTitles != null && i < cardTitles.Length && cardTitles[i] != null)
-                {
-                    cardTitles[i].text = upgrade.DisplayName;
-                }
-
-                if (cardDescriptions != null && i < cardDescriptions.Length && cardDescriptions[i] != null)
-                {
-                    cardDescriptions[i].text = upgrade.Description;
+                    _cardInstances[i].gameObject.SetActive(false);
                 }
             }
 
@@ -133,14 +145,13 @@ namespace Labyrinth.UI
             Debug.Log($"LevelUpUI: Panel activated, showing {_currentUpgrades?.Count ?? 0} upgrades");
         }
 
-        private void OnCardSelected(int index)
+        private void OnCardSelected(LevelUpUpgrade upgrade)
         {
-            if (_currentUpgrades == null || index >= _currentUpgrades.Count)
+            if (upgrade == null)
                 return;
 
             // Apply the selected upgrade
-            var selectedUpgrade = _currentUpgrades[index];
-            UpgradeManager.Instance?.ApplyUpgrade(selectedUpgrade);
+            UpgradeManager.Instance?.ApplyUpgrade(upgrade);
 
             // Hide panel and resume game
             if (levelUpPanel != null)

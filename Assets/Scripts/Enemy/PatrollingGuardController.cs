@@ -54,6 +54,19 @@ namespace Labyrinth.Enemy
         // State machine
         private GuardState _currentState = GuardState.Patrolling;
         private float _pauseTimer;
+
+        /// <summary>
+        /// The direction the guard is currently facing.
+        /// </summary>
+        public Vector2 FacingDirection => _facingDirection;
+
+        /// <summary>
+        /// Whether the guard is currently moving.
+        /// </summary>
+        public bool IsMoving => _currentState == GuardState.Patrolling ||
+                                _currentState == GuardState.Chasing ||
+                                _currentState == GuardState.Investigating ||
+                                _currentState == GuardState.Returning;
         private float _losePlayerTimer;
         private float _pathTimer;
         private float _attackTimer;
@@ -187,14 +200,23 @@ namespace Labyrinth.Enemy
 
             // Update pathfinding
             _pathTimer -= Time.deltaTime;
-            if (_pathTimer <= 0)
+            bool pathExhausted = _currentPath == null || _pathIndex >= _currentPath.Count;
+            if (_pathTimer <= 0 || pathExhausted)
             {
                 RecalculatePathToPlayer();
                 _pathTimer = pathRecalculateInterval;
             }
 
-            // Follow path
-            MoveAlongPath(chaseSpeed);
+            // Follow path, or move directly toward player if path is still invalid
+            if (_currentPath != null && _pathIndex < _currentPath.Count)
+            {
+                MoveAlongPath(chaseSpeed);
+            }
+            else
+            {
+                // Fallback: move directly toward player
+                MoveToward(_player.position, chaseSpeed);
+            }
         }
 
         private void UpdateReturning()
@@ -356,6 +378,10 @@ namespace Labyrinth.Enemy
             if (NoClipManager.Instance != null && NoClipManager.Instance.IsNoClipActive)
                 return false;
 
+            // Can't see player when invisible
+            if (InvisibilityManager.Instance != null && InvisibilityManager.Instance.IsInvisible)
+                return false;
+
             Vector2 guardPos = transform.position;
             Vector2 playerPos = _player.position;
             Vector2 toPlayer = playerPos - guardPos;
@@ -426,7 +452,8 @@ namespace Labyrinth.Enemy
             );
 
             _currentPath = _pathfinding.FindPath(currentPos, targetPos);
-            _pathIndex = 0;
+            // Skip the first node (current position) to avoid looking backward
+            _pathIndex = (_currentPath != null && _currentPath.Count > 1) ? 1 : 0;
         }
 
         private void RecalculatePathToLastSeenPosition()
@@ -441,7 +468,8 @@ namespace Labyrinth.Enemy
             );
 
             _currentPath = _pathfinding.FindPath(currentPos, targetPos);
-            _pathIndex = 0;
+            // Skip the first node (current position) to avoid looking backward
+            _pathIndex = (_currentPath != null && _currentPath.Count > 1) ? 1 : 0;
         }
 
         private void RecalculatePathToNearestWaypoint()
@@ -470,7 +498,8 @@ namespace Labyrinth.Enemy
             );
 
             _currentPath = _pathfinding.FindPath(currentPos, targetPos);
-            _pathIndex = 0;
+            // Skip the first node (current position) to avoid looking backward
+            _pathIndex = (_currentPath != null && _currentPath.Count > 1) ? 1 : 0;
         }
 
         private void UpdateFacingDirection()
@@ -488,8 +517,11 @@ namespace Labyrinth.Enemy
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            // Don't deal damage in no-clip mode
+            // Don't deal damage in no-clip mode or invisibility mode
             if (NoClipManager.Instance != null && NoClipManager.Instance.IsNoClipActive)
+                return;
+
+            if (InvisibilityManager.Instance != null && InvisibilityManager.Instance.IsInvisible)
                 return;
 
             if (other.CompareTag("Player") && _attackTimer <= 0)
@@ -508,8 +540,11 @@ namespace Labyrinth.Enemy
 
         private void OnTriggerStay2D(Collider2D other)
         {
-            // Don't deal damage in no-clip mode
+            // Don't deal damage in no-clip mode or invisibility mode
             if (NoClipManager.Instance != null && NoClipManager.Instance.IsNoClipActive)
+                return;
+
+            if (InvisibilityManager.Instance != null && InvisibilityManager.Instance.IsInvisible)
                 return;
 
             if (other.CompareTag("Player") && _attackTimer <= 0)

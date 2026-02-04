@@ -9,9 +9,12 @@ namespace Labyrinth.UI
     /// </summary>
     public class InventoryUI : MonoBehaviour
     {
+        [Header("Slot Sprites")]
+        [SerializeField] private Sprite containerSprite;
+
         [Header("Colors")]
-        [SerializeField] private Color emptySlotColor = new Color(0.2f, 0.2f, 0.2f, 0.5f);
-        [SerializeField] private Color filledSlotColor = new Color(0.3f, 0.3f, 0.3f, 0.8f);
+        [SerializeField] private Color emptySlotColor = new Color(1f, 1f, 1f, 0.5f);
+        [SerializeField] private Color filledSlotColor = Color.white;
 
         [Header("Uses Counter")]
         [SerializeField] private int usesCounterFontSize = 14;
@@ -45,17 +48,39 @@ namespace Labyrinth.UI
                 var bgImage = child.GetComponent<Image>();
                 if (bgImage != null)
                 {
+                    // Set the container sprite as background
+                    if (containerSprite != null)
+                    {
+                        bgImage.sprite = containerSprite;
+                        bgImage.type = Image.Type.Simple;
+                    }
+
                     backgrounds.Add(bgImage);
 
-                    // Find icon image (child of the slot)
+                    // Find or create icon image (child of the slot)
+                    Image iconImage = null;
                     if (child.childCount > 0)
                     {
-                        var iconImage = child.GetChild(0).GetComponent<Image>();
-                        if (iconImage != null)
-                        {
-                            icons.Add(iconImage);
-                        }
+                        iconImage = child.GetChild(0).GetComponent<Image>();
                     }
+
+                    // Create icon if it doesn't exist
+                    if (iconImage == null)
+                    {
+                        iconImage = CreateIconImage(child);
+                    }
+                    else
+                    {
+                        // Ensure existing icon is centered
+                        var iconRect = iconImage.GetComponent<RectTransform>();
+                        iconRect.anchorMin = new Vector2(0.5f, 0.5f);
+                        iconRect.anchorMax = new Vector2(0.5f, 0.5f);
+                        iconRect.pivot = new Vector2(0.5f, 0.5f);
+                        iconRect.anchoredPosition = Vector2.zero;
+                        iconRect.sizeDelta = new Vector2(24f, 24f);
+                    }
+
+                    icons.Add(iconImage);
 
                     // Create uses counter text for this slot
                     var counterText = CreateUsesCounter(child);
@@ -67,6 +92,24 @@ namespace Labyrinth.UI
             _slotIcons = icons.ToArray();
             _usesCounters = counters.ToArray();
             _initialized = true;
+        }
+
+        private Image CreateIconImage(Transform parent)
+        {
+            var iconObj = new GameObject("ItemIcon");
+            iconObj.transform.SetParent(parent, false);
+
+            var rectTransform = iconObj.AddComponent<RectTransform>();
+            rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            rectTransform.anchoredPosition = Vector2.zero;
+            rectTransform.sizeDelta = new Vector2(24f, 24f);
+
+            var image = iconObj.AddComponent<Image>();
+            image.preserveAspect = true;
+
+            return image;
         }
 
         private Text CreateUsesCounter(Transform slotTransform)

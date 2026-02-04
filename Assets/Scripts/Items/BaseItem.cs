@@ -6,9 +6,15 @@ namespace Labyrinth.Items
     [RequireComponent(typeof(Collider2D))]
     public abstract class BaseItem : MonoBehaviour
     {
+        [Header("Animation")]
+        [SerializeField] private bool enableBobbing = true;
         [SerializeField] private float bobSpeed = 2f;
         [SerializeField] private float bobAmount = 0.1f;
+
+        [Header("Sprites")]
         [SerializeField] protected Sprite itemIcon;
+        [SerializeField, Tooltip("Sprite shown in the world (e.g., chest). If null, uses SpriteRenderer's current sprite.")]
+        protected Sprite worldSprite;
 
         private Vector3 _startPosition;
         private float _bobOffset;
@@ -28,22 +34,38 @@ namespace Labyrinth.Items
         /// </summary>
         public abstract InventoryItem CreateInventoryItem();
 
+        /// <summary>
+        /// Sets the item icon for inventory display. Call this before Start() for dynamically created items.
+        /// </summary>
+        public void SetItemIcon(Sprite icon)
+        {
+            itemIcon = icon;
+        }
+
         protected virtual void Start()
         {
             _startPosition = transform.position;
             GetComponent<Collider2D>().isTrigger = true;
 
-            // Auto-assign icon from SpriteRenderer if not set
-            if (itemIcon == null)
+            var sr = GetComponent<SpriteRenderer>();
+
+            // Apply world sprite if set
+            if (worldSprite != null && sr != null)
             {
-                var sr = GetComponent<SpriteRenderer>();
-                if (sr != null)
-                    itemIcon = sr.sprite;
+                sr.sprite = worldSprite;
+            }
+
+            // Auto-assign icon from SpriteRenderer if not set
+            if (itemIcon == null && sr != null)
+            {
+                itemIcon = sr.sprite;
             }
         }
 
         protected virtual void Update()
         {
+            if (!enableBobbing) return;
+
             // Bobbing animation
             _bobOffset = Mathf.Sin(Time.time * bobSpeed) * bobAmount;
             transform.position = _startPosition + Vector3.up * _bobOffset;

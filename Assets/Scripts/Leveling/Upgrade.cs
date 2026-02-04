@@ -16,14 +16,16 @@ namespace Labyrinth.Leveling
         public string Description { get; private set; }
         public float Value { get; private set; }
         public Color CardColor { get; private set; }
+        public Sprite Icon { get; private set; }
 
-        public Upgrade(UpgradeType type, string displayName, string description, float value, Color cardColor)
+        public Upgrade(UpgradeType type, string displayName, string description, float value, Color cardColor, Sprite icon = null)
         {
             Type = type;
             DisplayName = displayName;
             Description = description;
             Value = value;
             CardColor = cardColor;
+            Icon = icon;
         }
     }
 }
