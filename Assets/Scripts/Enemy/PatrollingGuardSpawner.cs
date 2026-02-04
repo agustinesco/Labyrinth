@@ -293,6 +293,10 @@ namespace Labyrinth.Enemy
             guardObj.AddComponent<PatrollingGuardController>();
             guardObj.AddComponent<Labyrinth.Visibility.VisibilityAwareEntity>();
 
+            // Add bestiary discoverable
+            var discoverable = guardObj.AddComponent<Labyrinth.UI.Bestiary.BestiaryDiscoverable>();
+            discoverable.SetEnemyId("patrolling_guard");
+
             return guardObj;
         }
 

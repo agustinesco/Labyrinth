@@ -7,6 +7,9 @@ namespace Labyrinth.Leveling
     {
         public static PlayerLevelSystem Instance { get; private set; }
 
+        [Header("Configuration")]
+        [SerializeField] private LevelingConfig levelingConfig;
+
         private int _currentLevel = 1;
         private int _currentXP = 0;
         private float _permanentSpeedBonus = 0f;
@@ -17,7 +20,8 @@ namespace Labyrinth.Leveling
 
         public int CurrentLevel => _currentLevel;
         public int CurrentXP => _currentXP;
-        public int XPForNextLevel => _currentLevel * 5;
+        public int XPForNextLevel => levelingConfig != null ? levelingConfig.GetXPForLevel(_currentLevel) : _currentLevel * 5;
+        public bool IsMaxLevel => levelingConfig != null && !levelingConfig.CanLevelUp(_currentLevel);
         public float PermanentSpeedBonus => _permanentSpeedBonus;
         public float PermanentVisionBonus => _permanentVisionBonus;
         public float WallHuggerSpeedBonus => _wallHuggerSpeedBonus;
@@ -45,14 +49,27 @@ namespace Labyrinth.Leveling
 
         public void AddXP(int amount)
         {
+            // Don't add XP if at max level
+            if (IsMaxLevel)
+            {
+                return;
+            }
+
             _currentXP += amount;
 
             // Check for level up
-            while (_currentXP >= XPForNextLevel)
+            while (_currentXP >= XPForNextLevel && !IsMaxLevel)
             {
                 _currentXP -= XPForNextLevel;
                 _currentLevel++;
                 OnLevelUp?.Invoke(_currentLevel);
+
+                // If we just hit max level, cap XP at 0
+                if (IsMaxLevel)
+                {
+                    _currentXP = 0;
+                    break;
+                }
             }
 
             OnXPChanged?.Invoke(_currentXP, XPForNextLevel);

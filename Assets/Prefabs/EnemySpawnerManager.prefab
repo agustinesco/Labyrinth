@@ -50,6 +50,58 @@ MonoBehaviour:
   maxGuards: 3
   bufferFromStartExit: 5
   wallOffset: 0.6
+--- !u!1 &4139176069006557621
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3342743762582101354}
+  - component: {fileID: 9001621208162204234}
+  m_Layer: 0
+  m_Name: ShadowStalkerSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3342743762582101354
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4139176069006557621}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 9050763674673263552}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9001621208162204234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4139176069006557621}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d0f01832fb744d05a451e1b90c58752, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stalkerPrefab: {fileID: 3662455487589520068, guid: 1482d747cf2f2422e89bca61adccbb79, type: 3}
+  spawnChance: 0.4
+  maxStalkers: 3
+  startExclusionRadius: 10
+  exitExclusionRadius: 8
+  preferDeadEnds: 1
+  preferCorners: 1
+  minDistanceBetweenStalkers: 10
 --- !u!1 &5139519414527250129
 GameObject:
   m_ObjectHideFlags: 0
@@ -82,6 +134,7 @@ Transform:
   m_Children:
   - {fileID: 8059279273347289505}
   - {fileID: 1715014969098212088}
+  - {fileID: 3342743762582101354}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3461093163984059763
@@ -99,6 +152,7 @@ MonoBehaviour:
   spawnConfig: {fileID: 11400000, guid: 7828afdafd47f43468ac4ece10eda90d, type: 2}
   patrollingGuardSpawner: {fileID: 3009052618104065178}
   blindMoleSpawner: {fileID: 7396592549818925124}
+  shadowStalkerSpawner: {fileID: 9001621208162204234}
 --- !u!1 &8144442064912669936
 GameObject:
   m_ObjectHideFlags: 0

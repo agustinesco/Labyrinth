@@ -75,7 +75,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 962d19c5f49fc401d963d0bb60c0d071, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -136,8 +136,8 @@ MonoBehaviour:
   enableBobbing: 1
   bobSpeed: 2
   bobAmount: 0.1
-  itemIcon: {fileID: 0}
-  worldSprite: {fileID: 0}
+  itemIcon: {fileID: 21300000, guid: 962d19c5f49fc401d963d0bb60c0d071, type: 3}
+  worldSprite: {fileID: 21300000, guid: 962d19c5f49fc401d963d0bb60c0d071, type: 3}
   uses: 3
   speedMultiplier: 0.4
   slowDuration: 4

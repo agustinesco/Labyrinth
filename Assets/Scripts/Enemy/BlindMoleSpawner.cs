@@ -188,6 +188,10 @@ namespace Labyrinth.Enemy
             // Add controller
             var controller = moleObj.AddComponent<BlindMoleController>();
 
+            // Add bestiary discoverable
+            var discoverable = moleObj.AddComponent<Labyrinth.UI.Bestiary.BestiaryDiscoverable>();
+            discoverable.SetEnemyId("blind_mole");
+
             return moleObj;
         }
 

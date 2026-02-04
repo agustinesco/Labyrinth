@@ -248,6 +248,10 @@ namespace Labyrinth.Enemy
             // Add visibility aware entity
             stalkerObj.AddComponent<Labyrinth.Visibility.VisibilityAwareEntity>();
 
+            // Add bestiary discoverable
+            var discoverable = stalkerObj.AddComponent<Labyrinth.UI.Bestiary.BestiaryDiscoverable>();
+            discoverable.SetEnemyId("shadow_stalker");
+
             return stalkerObj;
         }
 
