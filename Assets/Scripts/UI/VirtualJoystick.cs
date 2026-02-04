@@ -189,35 +189,33 @@ namespace Labyrinth.UI
         {
             _isActive = true;
 
-            if (dynamicOrigin && background != null)
+            if (dynamicOrigin && background != null && _canvasRect != null)
             {
-                // Get the parent RectTransform for coordinate conversion
-                RectTransform parentRect = background.parent as RectTransform;
-                if (parentRect == null) parentRect = _canvasRect;
-
-                // Convert screen position to local position in background's parent
-                Vector2 localPoint;
+                // Convert screen position to canvas local position
+                Vector2 canvasLocalPoint;
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    parentRect,
+                    _canvasRect,
                     eventData.position,
                     eventData.pressEventCamera,
-                    out localPoint
+                    out canvasLocalPoint
                 );
 
-                // Clamp position to keep joystick fully visible with padding
+                // Canvas rect center is at (0,0), so adjust to bottom-left origin
+                Vector2 canvasSize = _canvasRect.rect.size;
+                Vector2 posFromBottomLeft = canvasLocalPoint + canvasSize / 2f;
+
+                // Clamp to keep joystick visible within touch zone with padding
                 float halfSize = background.sizeDelta.x / 2f;
-                Vector2 parentSize = parentRect.rect.size;
-
-                // Calculate bounds based on anchors (assuming bottom-left anchored)
                 float minX = halfSize + edgePadding;
-                float maxX = parentSize.x * touchZoneWidthPercent - halfSize - edgePadding;
+                float maxX = canvasSize.x * touchZoneWidthPercent - halfSize - edgePadding;
                 float minY = halfSize + edgePadding;
-                float maxY = parentSize.y * touchZoneHeightPercent - halfSize - edgePadding;
+                float maxY = canvasSize.y * touchZoneHeightPercent - halfSize - edgePadding;
 
-                localPoint.x = Mathf.Clamp(localPoint.x, minX, maxX);
-                localPoint.y = Mathf.Clamp(localPoint.y, minY, maxY);
+                posFromBottomLeft.x = Mathf.Clamp(posFromBottomLeft.x, minX, maxX);
+                posFromBottomLeft.y = Mathf.Clamp(posFromBottomLeft.y, minY, maxY);
 
-                background.anchoredPosition = localPoint;
+                // Set position - background anchored to bottom-left (0,0)
+                background.anchoredPosition = posFromBottomLeft;
             }
 
             // Show joystick
