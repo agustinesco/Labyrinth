@@ -18,8 +18,8 @@ namespace Labyrinth.Visibility
         [Header("Cone Settings")]
         [SerializeField, Tooltip("Number of rays for directional vision cone (lower = better performance)")]
         private int rayCount = 100;
-        [SerializeField] private float baseVisibilityRadius = 8f;
-        [SerializeField] private float coneAngle = 120f;
+        [SerializeField] private float baseVisibilityRadius = 4f;
+        [SerializeField] private float coneAngle = 60f;
 
         [Header("Ambient Circle Settings")]
         [SerializeField] private float ambientRadius = 3f;

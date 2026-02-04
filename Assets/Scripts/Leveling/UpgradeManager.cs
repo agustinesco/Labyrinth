@@ -30,11 +30,24 @@ namespace Labyrinth.Leveling
 
         /// <summary>
         /// Get a random selection of upgrades to offer the player.
+        /// Only includes upgrades that are marked as active.
         /// </summary>
         public List<LevelUpUpgrade> GetRandomUpgrades(int count)
         {
             var result = new List<LevelUpUpgrade>();
-            var available = new List<LevelUpUpgrade>(availableUpgrades);
+
+            // Filter to only valid, active upgrades
+            var activeUpgrades = new List<LevelUpUpgrade>();
+            foreach (var upgrade in availableUpgrades)
+            {
+                // Skip null or explicitly inactive upgrades
+                if (upgrade == null || !upgrade.IsActive)
+                    continue;
+
+                activeUpgrades.Add(upgrade);
+            }
+
+            var available = new List<LevelUpUpgrade>(activeUpgrades);
 
             // Shuffle and take 'count' upgrades
             for (int i = 0; i < count && available.Count > 0; i++)
@@ -44,11 +57,11 @@ namespace Labyrinth.Leveling
                 available.RemoveAt(index);
             }
 
-            // If we need more upgrades than unique ones, allow duplicates
-            while (result.Count < count && availableUpgrades.Count > 0)
+            // If we need more upgrades than unique ones, allow duplicates from active upgrades
+            while (result.Count < count && activeUpgrades.Count > 0)
             {
-                int index = Random.Range(0, availableUpgrades.Count);
-                result.Add(availableUpgrades[index]);
+                int index = Random.Range(0, activeUpgrades.Count);
+                result.Add(activeUpgrades[index]);
             }
 
             return result;

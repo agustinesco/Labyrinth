@@ -32,10 +32,21 @@ namespace Labyrinth.UI.Bestiary
 
         private List<BestiaryEntryUI> _entryUIs = new List<BestiaryEntryUI>();
         private BestiaryManager _bestiaryManager;
+        private bool _initialized;
 
-        private void Start()
+        private void Awake()
         {
+            Initialize();
+        }
+
+        private void Initialize()
+        {
+            if (_initialized) return;
+
             _bestiaryManager = BestiaryManager.Instance;
+            if (_bestiaryManager == null) return;
+
+            _initialized = true;
 
             if (closeDetailButton != null)
             {
@@ -54,6 +65,12 @@ namespace Labyrinth.UI.Bestiary
 
         private void OnEnable()
         {
+            // Try to initialize if not done yet (handles late activation)
+            if (!_initialized)
+            {
+                Initialize();
+            }
+
             if (_bestiaryManager != null)
             {
                 _bestiaryManager.OnEnemyDiscovered += OnEnemyDiscovered;

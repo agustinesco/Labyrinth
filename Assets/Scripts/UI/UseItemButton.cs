@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using Labyrinth.Player;
+using Labyrinth.Leveling;
 
 namespace Labyrinth.UI
 {
@@ -14,12 +15,18 @@ namespace Labyrinth.UI
         [Header("Colors")]
         [SerializeField] private Color activeColor = new Color(0.3f, 0.6f, 0.3f, 0.8f);
         [SerializeField] private Color inactiveColor = new Color(0.3f, 0.3f, 0.3f, 0.5f);
+        [SerializeField] private Color lockedColor = new Color(0.2f, 0.2f, 0.2f, 0.7f);
 
         [Header("Queue Slots")]
         [SerializeField] private Image queueSlot1Background;
         [SerializeField] private Image queueSlot1Icon;
         [SerializeField] private Image queueSlot2Background;
         [SerializeField] private Image queueSlot2Icon;
+
+        [Header("Locked Slot (4th slot - unlocked by Deep Pockets)")]
+        [SerializeField] private Image queueSlot3Background;
+        [SerializeField] private Image queueSlot3Icon;
+        [SerializeField] private GameObject queueSlot3LockOverlay;
 
         private Image _buttonImage;
         private Image _iconImage;
@@ -109,6 +116,9 @@ namespace Labyrinth.UI
             // Update queue slots
             UpdateQueueSlot(queueSlot1Background, queueSlot1Icon, 1);
             UpdateQueueSlot(queueSlot2Background, queueSlot2Icon, 2);
+
+            // Update locked slot (4th slot - requires Deep Pockets upgrade)
+            UpdateLockedSlot();
         }
 
         private void UpdateQueueSlot(Image background, Image icon, int itemIndex)
@@ -133,6 +143,59 @@ namespace Labyrinth.UI
                 if (icon != null)
                 {
                     icon.enabled = false;
+                }
+            }
+        }
+
+        private void UpdateLockedSlot()
+        {
+            if (queueSlot3Background == null) return;
+
+            // Check if the slot is unlocked (Deep Pockets upgrade grants extra inventory slots)
+            bool isUnlocked = PlayerLevelSystem.Instance != null && PlayerLevelSystem.Instance.ExtraInventorySlots >= 1;
+
+            if (isUnlocked)
+            {
+                // Slot is unlocked - behave like a normal queue slot
+                if (queueSlot3LockOverlay != null)
+                {
+                    queueSlot3LockOverlay.SetActive(false);
+                }
+
+                bool hasItem = _inventory != null && _inventory.ItemCount > 3;
+
+                if (hasItem)
+                {
+                    queueSlot3Background.color = activeColor;
+                    if (queueSlot3Icon != null)
+                    {
+                        queueSlot3Icon.sprite = _inventory.Items[3].Icon;
+                        queueSlot3Icon.color = Color.white;
+                        queueSlot3Icon.enabled = true;
+                    }
+                }
+                else
+                {
+                    queueSlot3Background.color = inactiveColor;
+                    if (queueSlot3Icon != null)
+                    {
+                        queueSlot3Icon.enabled = false;
+                    }
+                }
+            }
+            else
+            {
+                // Slot is locked - show lock overlay
+                queueSlot3Background.color = lockedColor;
+
+                if (queueSlot3Icon != null)
+                {
+                    queueSlot3Icon.enabled = false;
+                }
+
+                if (queueSlot3LockOverlay != null)
+                {
+                    queueSlot3LockOverlay.SetActive(true);
                 }
             }
         }

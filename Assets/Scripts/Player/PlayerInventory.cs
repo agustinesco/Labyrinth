@@ -94,10 +94,11 @@ namespace Labyrinth.Player
                     break;
 
                 case ItemType.Heal:
+                    // Increases max health by 1 and restores 1 heart
                     var health = GetComponent<PlayerHealth>();
                     if (health != null)
                     {
-                        health.Heal((int)item.EffectValue);
+                        health.IncreaseMaxHealth((int)item.EffectValue);
                     }
                     break;
 
@@ -137,6 +138,34 @@ namespace Labyrinth.Player
                     // EffectValue = reveal radius, Duration = reveal duration
                     Labyrinth.Items.EchoPulse.CreateAt(transform.position, item.EffectValue, item.Duration);
                     break;
+
+                case ItemType.Glider:
+                    // Allow player to pass through walls briefly
+                    ActivateGlider(item.Duration);
+                    break;
+            }
+        }
+
+        private void ActivateGlider(float duration)
+        {
+            // Ensure GliderEffect component exists
+            var gliderEffect = GetComponent<Items.GliderEffect>();
+            if (gliderEffect == null)
+            {
+                gliderEffect = gameObject.AddComponent<Items.GliderEffect>();
+            }
+
+            // Get maze grid reference
+            var mazeRenderer = FindObjectOfType<Labyrinth.Maze.MazeRenderer>();
+            Labyrinth.Maze.MazeGrid grid = mazeRenderer != null ? mazeRenderer.GetGrid() : null;
+
+            if (grid != null)
+            {
+                gliderEffect.Activate(duration, grid);
+            }
+            else
+            {
+                Debug.LogWarning("PlayerInventory: Could not find MazeGrid for glider effect!");
             }
         }
 

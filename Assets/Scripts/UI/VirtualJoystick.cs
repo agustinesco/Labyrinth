@@ -31,7 +31,7 @@ namespace Labyrinth.UI
 
         [Header("Visual Feedback")]
         [SerializeField] private CanvasGroup joystickCanvasGroup;
-        [SerializeField] private float idleAlpha = 0.5f;
+        [SerializeField] private float idleAlpha = 0f;
         [SerializeField] private float activeAlpha = 1f;
 
         private Vector2 _inputVector;

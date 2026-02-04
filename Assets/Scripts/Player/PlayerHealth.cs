@@ -83,6 +83,18 @@ namespace Labyrinth.Player
             OnHealthChanged?.Invoke(_currentHealth);
         }
 
+        /// <summary>
+        /// Increases max health by the specified amount and heals the same amount.
+        /// </summary>
+        public void IncreaseMaxHealth(int amount)
+        {
+            if (IsDead) return;
+
+            maxHealth += amount;
+            _currentHealth += amount; // Also heal to compensate for the new max
+            OnHealthChanged?.Invoke(_currentHealth);
+        }
+
         private void StartInvincibility()
         {
             _isInvincible = true;
