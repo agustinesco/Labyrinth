@@ -60,6 +60,57 @@ namespace Labyrinth.UI
                 _defaultPosition = background.anchoredPosition;
                 _backgroundCanvasGroup = background.GetComponent<CanvasGroup>();
             }
+
+            // Ensure any CanvasGroups are set to visible immediately
+            EnsureCanvasGroupsVisible();
+
+            // Set initial visibility
+            SetImageAlpha(idleAlpha);
+        }
+
+        private void EnsureCanvasGroupsVisible()
+        {
+            // Set all CanvasGroups to alpha 1 so they don't block visibility
+            if (joystickCanvasGroup != null)
+            {
+                joystickCanvasGroup.alpha = 1f;
+            }
+            if (_backgroundCanvasGroup != null)
+            {
+                _backgroundCanvasGroup.alpha = 1f;
+            }
+
+            // Also check parent for CanvasGroup
+            var parentCanvasGroup = GetComponent<CanvasGroup>();
+            if (parentCanvasGroup != null)
+            {
+                parentCanvasGroup.alpha = 1f;
+            }
+        }
+
+        private void SetImageAlpha(float alpha)
+        {
+            if (background != null)
+            {
+                var bgImage = background.GetComponent<Image>();
+                if (bgImage != null)
+                {
+                    var color = bgImage.color;
+                    color.a = alpha;
+                    bgImage.color = color;
+                }
+            }
+
+            if (knob != null)
+            {
+                var knobImage = knob.GetComponent<Image>();
+                if (knobImage != null)
+                {
+                    var color = knobImage.color;
+                    color.a = alpha;
+                    knobImage.color = color;
+                }
+            }
         }
 
         private void Start()
@@ -132,39 +183,8 @@ namespace Labyrinth.UI
         private void UpdateJoystickVisibility(bool active)
         {
             float alpha = active ? activeAlpha : idleAlpha;
-
-            // Always set alpha on images directly to ensure visibility
-            if (background != null)
-            {
-                var bgImage = background.GetComponent<Image>();
-                if (bgImage != null)
-                {
-                    var color = bgImage.color;
-                    color.a = alpha;
-                    bgImage.color = color;
-                }
-            }
-
-            if (knob != null)
-            {
-                var knobImage = knob.GetComponent<Image>();
-                if (knobImage != null)
-                {
-                    var color = knobImage.color;
-                    color.a = alpha;
-                    knobImage.color = color;
-                }
-            }
-
-            // Also update canvas groups if they exist
-            if (joystickCanvasGroup != null)
-            {
-                joystickCanvasGroup.alpha = 1f; // Keep at 1, we control via image alpha
-            }
-            if (_backgroundCanvasGroup != null)
-            {
-                _backgroundCanvasGroup.alpha = 1f;
-            }
+            EnsureCanvasGroupsVisible();
+            SetImageAlpha(alpha);
         }
 
         public void OnPointerDown(PointerEventData eventData)
