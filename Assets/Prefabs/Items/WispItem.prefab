@@ -76,7 +76,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: f75635577457742db92bcf3fc37a6b84, type: 3}
+  m_Sprite: {fileID: 1754827660, guid: c9d23144389714ffda9021acb7f994c7, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -137,8 +137,8 @@ MonoBehaviour:
   enableBobbing: 0
   bobSpeed: 2
   bobAmount: 0.1
-  itemIcon: {fileID: 21300000, guid: f75635577457742db92bcf3fc37a6b84, type: 3}
-  worldSprite: {fileID: -1691377562, guid: c9d23144389714ffda9021acb7f994c7, type: 3}
+  itemIcon: {fileID: 1754827660, guid: c9d23144389714ffda9021acb7f994c7, type: 3}
+  worldSprite: {fileID: 1754827660, guid: c9d23144389714ffda9021acb7f994c7, type: 3}
 --- !u!114 &5659662037151576427
 MonoBehaviour:
   m_ObjectHideFlags: 0
