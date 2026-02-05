@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b216345adfbd44371a795b5d2c8e4373, type: 3}
   m_Name: DeepPocketsUpgrade
   m_EditorClassIdentifier: 
+  isActive: 1
+  assetVersion: 1
   displayName: Deep Pockets
   description: Gain +1 inventory slot. More room for tools of the trade.
   icon: {fileID: 0}

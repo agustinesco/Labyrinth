@@ -18,7 +18,16 @@ namespace Labyrinth.Items
 
         protected override void OnCollected(GameObject player)
         {
-            GameManager.Instance?.TriggerWin();
+            var tracker = Labyrinth.Progression.ObjectiveTracker.Instance;
+            if (tracker != null)
+            {
+                tracker.OnKeyItemCollected();
+            }
+            else
+            {
+                // Fallback for when no progression system is active
+                GameManager.Instance?.TriggerWin();
+            }
         }
     }
 }

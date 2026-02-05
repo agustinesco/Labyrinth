@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b216345adfbd44371a795b5d2c8e4373, type: 3}
   m_Name: Restoration
   m_EditorClassIdentifier: 
-  displayName: Restoration
-  description: Restore 1 HP
+  displayName: Vitality
+  description: Increases max HP by 1
   icon: {fileID: 21300000, guid: 18221059261b54dd09fc23252ff533a1, type: 3}
   cardTint: {r: 0, g: 1, b: 0, a: 1}
   upgradeType: 2

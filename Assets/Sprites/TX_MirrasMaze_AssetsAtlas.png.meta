@@ -723,6 +723,174 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: TX_MirrasMaze_AssetsAtlas_9
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 128
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 16ab1dd958c604e6f99dc33862200ac8
+      internalID: 1082245837
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TX_MirrasMaze_AssetsAtlas_10
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 128
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 355c88013fdf34c27a20506a451f3b07
+      internalID: 1433953123
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TX_MirrasMaze_AssetsAtlas_11
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 128
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2752e1cc7e56041d89f3755ac2b00f4d
+      internalID: 1415155889
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TX_MirrasMaze_AssetsAtlas_12
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 128
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6f4e4bad096f54daeb28505770c4ab39
+      internalID: -1509550449
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TX_MirrasMaze_AssetsAtlas_15
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 128
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a5f981084605f49ab9b7afd2acde6484
+      internalID: -1586813205
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TX_MirrasMaze_AssetsAtlas_16
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 127
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6099ea0bb7a134c648b332ba40cb1974
+      internalID: 1101782453
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TX_MirrasMaze_AssetsAtlas_18
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 96
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3a62db3fdf1c047d69695d15f6090d45
+      internalID: 579809659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TX_MirrasMaze_AssetsAtlas_19
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 96
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6f963ab54b7fb476e9a4bdd60aee731c
+      internalID: 1754827660
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -744,9 +912,16 @@ TextureImporter:
       TX_MazeFloorRight: 595743376
       TX_MirrasMaze_AssetsAtlas_0: -1724197844
       TX_MirrasMaze_AssetsAtlas_1: 199115390
+      TX_MirrasMaze_AssetsAtlas_10: 1433953123
+      TX_MirrasMaze_AssetsAtlas_11: 1415155889
+      TX_MirrasMaze_AssetsAtlas_12: -1509550449
       TX_MirrasMaze_AssetsAtlas_13: -1659094937
       TX_MirrasMaze_AssetsAtlas_14: 795742981
+      TX_MirrasMaze_AssetsAtlas_15: -1586813205
+      TX_MirrasMaze_AssetsAtlas_16: 1101782453
       TX_MirrasMaze_AssetsAtlas_17: -1062581429
+      TX_MirrasMaze_AssetsAtlas_18: 579809659
+      TX_MirrasMaze_AssetsAtlas_19: 1754827660
       TX_MirrasMaze_AssetsAtlas_2: 1916733652
       TX_MirrasMaze_AssetsAtlas_3: -1612315524
       TX_MirrasMaze_AssetsAtlas_4: 2112173671
@@ -754,6 +929,7 @@ TextureImporter:
       TX_MirrasMaze_AssetsAtlas_6: -715356535
       TX_MirrasMaze_AssetsAtlas_7: 21997314
       TX_MirrasMaze_AssetsAtlas_8: -1126366075
+      TX_MirrasMaze_AssetsAtlas_9: 1082245837
       TX_UIHearthEmpty: -124568168
       TX_UIHearthFull: 1466772457
       TX_XPBarBackground: -2000000001

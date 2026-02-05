@@ -21,6 +21,7 @@ namespace Labyrinth.UI
         [SerializeField] private Button gliderItemButton;
         [SerializeField] private Button tunnelItemButton;
         [SerializeField] private Button silkWormItemButton;
+        [SerializeField] private Button eagleEyeItemButton;
         [SerializeField] private Button xpButton;
         [SerializeField] private Button noClipButton;
         [SerializeField] private Button revealMapButton;
@@ -38,8 +39,146 @@ namespace Labyrinth.UI
         [SerializeField] private GameObject gliderItemPrefab;
         [SerializeField] private GameObject tunnelItemPrefab;
         [SerializeField] private GameObject silkWormItemPrefab;
+        [SerializeField] private GameObject eagleEyeItemPrefab;
+
+        [Header("Layout Settings")]
+        [SerializeField] private float buttonHeight = 30f;
+        [SerializeField] private float panelHeight = 300f;
 
         private bool _isOpen;
+
+        private void Awake()
+        {
+            SetupScrollView();
+        }
+
+        private void SetupScrollView()
+        {
+            if (menuPanel == null) return;
+
+            RectTransform panelRect = menuPanel.GetComponent<RectTransform>();
+            if (panelRect == null) return;
+
+            // Set panel height
+            panelRect.sizeDelta = new Vector2(panelRect.sizeDelta.x, panelHeight);
+
+            // Clean up any existing broken scroll setup
+            ScrollRect existingScrollRect = menuPanel.GetComponent<ScrollRect>();
+            if (existingScrollRect != null)
+            {
+                // Check if it's properly configured
+                if (existingScrollRect.viewport != null && existingScrollRect.content != null)
+                {
+                    // Already properly set up, just ensure button heights
+                    SetButtonHeights(existingScrollRect.content);
+                    return;
+                }
+                // Broken setup, remove it
+                Destroy(existingScrollRect);
+            }
+
+            // Remove any orphaned Viewport/Content objects
+            Transform existingViewport = menuPanel.transform.Find("Viewport");
+            if (existingViewport != null) Destroy(existingViewport.gameObject);
+            Transform existingContent = menuPanel.transform.Find("Content");
+            if (existingContent != null) Destroy(existingContent.gameObject);
+
+            // Get the existing VerticalLayoutGroup (will be removed after setup)
+            VerticalLayoutGroup existingLayout = menuPanel.GetComponent<VerticalLayoutGroup>();
+
+            // Create Viewport
+            GameObject viewportGO = new GameObject("Viewport", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Mask));
+            viewportGO.transform.SetParent(menuPanel.transform, false);
+            RectTransform viewportRect = viewportGO.GetComponent<RectTransform>();
+            viewportRect.anchorMin = Vector2.zero;
+            viewportRect.anchorMax = Vector2.one;
+            viewportRect.offsetMin = Vector2.zero;
+            viewportRect.offsetMax = Vector2.zero;
+
+            Image viewportImage = viewportGO.GetComponent<Image>();
+            viewportImage.color = new Color(1, 1, 1, 0.01f); // Nearly transparent but needed for mask
+
+            Mask viewportMask = viewportGO.GetComponent<Mask>();
+            viewportMask.showMaskGraphic = false;
+
+            // Create Content
+            GameObject contentGO = new GameObject("Content", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
+            contentGO.transform.SetParent(viewportGO.transform, false);
+            RectTransform contentRect = contentGO.GetComponent<RectTransform>();
+            contentRect.anchorMin = new Vector2(0, 1);
+            contentRect.anchorMax = new Vector2(1, 1);
+            contentRect.pivot = new Vector2(0.5f, 1);
+            contentRect.anchoredPosition = Vector2.zero;
+            contentRect.sizeDelta = new Vector2(0, 0);
+
+            VerticalLayoutGroup contentLayout = contentGO.GetComponent<VerticalLayoutGroup>();
+            contentLayout.spacing = 2;
+            contentLayout.padding = new RectOffset(5, 5, 5, 5);
+            contentLayout.childControlWidth = true;
+            contentLayout.childControlHeight = false;
+            contentLayout.childForceExpandWidth = true;
+            contentLayout.childForceExpandHeight = false;
+
+            ContentSizeFitter contentFitter = contentGO.GetComponent<ContentSizeFitter>();
+            contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            // Collect all button children (exclude Viewport)
+            System.Collections.Generic.List<Transform> buttonsToMove = new System.Collections.Generic.List<Transform>();
+            for (int i = 0; i < menuPanel.transform.childCount; i++)
+            {
+                Transform child = menuPanel.transform.GetChild(i);
+                if (child.gameObject != viewportGO && child.name != "Viewport" && child.name != "Content")
+                {
+                    buttonsToMove.Add(child);
+                }
+            }
+
+            // Move buttons to Content and set fixed height
+            foreach (Transform child in buttonsToMove)
+            {
+                // Set fixed height via LayoutElement
+                LayoutElement layoutElement = child.GetComponent<LayoutElement>();
+                if (layoutElement == null)
+                {
+                    layoutElement = child.gameObject.AddComponent<LayoutElement>();
+                }
+                layoutElement.preferredHeight = buttonHeight;
+                layoutElement.minHeight = buttonHeight;
+
+                child.SetParent(contentGO.transform, false);
+            }
+
+            // Remove old VerticalLayoutGroup from panel
+            if (existingLayout != null)
+            {
+                Destroy(existingLayout);
+            }
+
+            // Add ScrollRect to panel
+            ScrollRect scrollRect = menuPanel.AddComponent<ScrollRect>();
+            scrollRect.content = contentRect;
+            scrollRect.viewport = viewportRect;
+            scrollRect.horizontal = false;
+            scrollRect.vertical = true;
+            scrollRect.movementType = ScrollRect.MovementType.Clamped;
+            scrollRect.scrollSensitivity = 20f;
+        }
+
+        private void SetButtonHeights(RectTransform content)
+        {
+            if (content == null) return;
+
+            foreach (Transform child in content)
+            {
+                LayoutElement layoutElement = child.GetComponent<LayoutElement>();
+                if (layoutElement == null)
+                {
+                    layoutElement = child.gameObject.AddComponent<LayoutElement>();
+                }
+                layoutElement.preferredHeight = buttonHeight;
+                layoutElement.minHeight = buttonHeight;
+            }
+        }
 
         private void Start()
         {
@@ -79,6 +218,9 @@ namespace Labyrinth.UI
 
             if (silkWormItemButton != null)
                 silkWormItemButton.onClick.AddListener(() => GiveItemFromPrefab(silkWormItemPrefab));
+
+            if (eagleEyeItemButton != null)
+                eagleEyeItemButton.onClick.AddListener(() => GiveItemFromPrefab(eagleEyeItemPrefab));
 
             if (xpButton != null)
                 xpButton.onClick.AddListener(AddXP);
@@ -208,6 +350,8 @@ namespace Labyrinth.UI
                 tunnelItemButton.onClick.RemoveAllListeners();
             if (silkWormItemButton != null)
                 silkWormItemButton.onClick.RemoveAllListeners();
+            if (eagleEyeItemButton != null)
+                eagleEyeItemButton.onClick.RemoveAllListeners();
             if (xpButton != null)
                 xpButton.onClick.RemoveAllListeners();
             if (noClipButton != null)

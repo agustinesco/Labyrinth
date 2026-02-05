@@ -30,11 +30,11 @@ namespace Labyrinth.UI
         }
 
         /// <summary>
-        /// Called when Play button is clicked. Loads the Game scene.
+        /// Called when Play button is clicked. Loads the Level Selection scene.
         /// </summary>
         private void OnPlayClicked()
         {
-            SceneManager.LoadScene("Game");
+            SceneManager.LoadScene("LevelSelection");
         }
     }
 }

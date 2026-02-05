@@ -7,6 +7,8 @@ using Labyrinth.Core;
 using Labyrinth.UI;
 using Labyrinth.Traps;
 using Labyrinth.Visibility;
+using Labyrinth.Progression;
+using Labyrinth.Leveling;
 
 namespace Labyrinth.Maze
 {
@@ -36,21 +38,37 @@ namespace Labyrinth.Maze
 
         private void GenerateMaze()
         {
-            if (mazeConfig == null)
+            MazeGeneratorConfig effectiveConfig = mazeConfig;
+
+            // Check if we have an active level from progression
+            var levelManager = LevelProgressionManager.Instance;
+            if (levelManager != null && levelManager.CurrentLevel != null)
+            {
+                var level = levelManager.CurrentLevel;
+                effectiveConfig = level.CreateMazeConfig();
+
+                // Reset player systems for fresh start
+                if (PlayerLevelSystem.Instance != null)
+                {
+                    PlayerLevelSystem.Instance.ResetLevel();
+                }
+            }
+
+            if (effectiveConfig == null)
             {
                 Debug.LogError("[MazeInitializer] No MazeGeneratorConfig assigned!");
                 return;
             }
 
             // Generate maze using config
-            var generator = mazeConfig.CreateGenerator();
+            var generator = effectiveConfig.CreateGenerator();
             Grid = generator.Generate();
             mazeRenderer.RenderMaze(Grid);
 
             // Update fog of war to match maze size
             if (fogOfWarManager != null)
             {
-                fogOfWarManager.SetMazeDimensions(mazeConfig.Width, mazeConfig.Height);
+                fogOfWarManager.SetMazeDimensions(effectiveConfig.Width, effectiveConfig.Height);
             }
 
             // Spawn player
@@ -59,11 +77,18 @@ namespace Labyrinth.Maze
                 Quaternion.identity);
             playerObj.tag = "Player";
 
+            // Spawn ObjectiveTracker if not present
+            if (FindFirstObjectByType<ObjectiveTracker>() == null)
+            {
+                var trackerObj = new GameObject("ObjectiveTracker");
+                trackerObj.AddComponent<ObjectiveTracker>();
+            }
+
             // Set up camera
             if (cameraFollow != null)
             {
                 cameraFollow.SetTarget(playerObj.transform);
-                cameraFollow.SetBounds(mazeConfig.Width, mazeConfig.Height);
+                cameraFollow.SetBounds(effectiveConfig.Width, effectiveConfig.Height);
             }
 
             // Set up health display
@@ -95,7 +120,7 @@ namespace Labyrinth.Maze
             // Spawn traps
             if (trapSpawner != null)
             {
-                trapSpawner.SpawnTraps(Grid, mazeRenderer.StartPosition, mazeRenderer.ExitPosition, mazeConfig.GetValidatedCorridorWidth());
+                trapSpawner.SpawnTraps(Grid, mazeRenderer.StartPosition, mazeRenderer.ExitPosition, effectiveConfig.GetValidatedCorridorWidth());
             }
 
             // Initialize enemy spawner

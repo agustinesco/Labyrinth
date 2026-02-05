@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b216345adfbd44371a795b5d2c8e4373, type: 3}
   m_Name: SwiftFeet
   m_EditorClassIdentifier: 
+  isActive: 1
+  assetVersion: 1
   displayName: Swift Feet
   description: +1 Movement Speed
   icon: {fileID: 21300000, guid: d1b5a24bbff664efd84145b8705f0361, type: 3}
