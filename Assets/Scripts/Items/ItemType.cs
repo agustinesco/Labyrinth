@@ -14,6 +14,8 @@ namespace Labyrinth.Items
         Wisp, // Spawns an orb that pathfinds to the key, leaving a fading trail
         Caltrops, // Scatter caltrops that slow enemies (and damage player if stepped on)
         EchoStone, // Sonar pulse that reveals enemy positions through walls
-        Glider // Allows player to pass through walls briefly
+        Glider, // Allows player to pass through walls briefly
+        Tunnel, // Creates a tunnel through a 1-tile thick wall
+        SilkWorm // Creates a silk string trap between two walls
     }
 }

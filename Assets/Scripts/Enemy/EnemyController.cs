@@ -131,6 +131,10 @@ namespace Labyrinth.Enemy
             if (Player.InvisibilityManager.Instance != null && Player.InvisibilityManager.Instance.IsInvisible)
                 return;
 
+            // Don't deal damage while glider is active (player can pass through walls)
+            if (GliderEffect.Instance != null && GliderEffect.Instance.IsActive)
+                return;
+
             if (other.CompareTag("Player") && _attackTimer <= 0)
             {
                 var playerHealth = other.GetComponent<PlayerHealth>();

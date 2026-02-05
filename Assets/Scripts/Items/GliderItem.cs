@@ -4,7 +4,7 @@ namespace Labyrinth.Items
 {
     public class GliderItem : BaseItem
     {
-        [SerializeField] private float duration = 3f;
+        [SerializeField] private float duration = 4f;
 
         public override ItemType ItemType => ItemType.Glider;
 

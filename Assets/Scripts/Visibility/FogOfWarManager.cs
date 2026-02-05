@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using Labyrinth.Player;
 using Labyrinth.Leveling;
+using Labyrinth.Items;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -320,6 +321,9 @@ namespace Labyrinth.Visibility
             Vector2 facing = _playerController.FacingDirection;
             float facingAngle = Mathf.Atan2(facing.y, facing.x) * Mathf.Rad2Deg;
 
+            // Check if glider is active - vision passes through walls
+            bool gliderActive = GliderEffect.Instance != null && GliderEffect.Instance.IsActive;
+
             // Cast rays for ambient circle (360° around player with smaller radius)
             float ambientAngleStep = 360f / ambientRayCount;
             for (int i = 0; i < ambientRayCount; i++)
@@ -327,8 +331,12 @@ namespace Labyrinth.Visibility
                 float angle = i * ambientAngleStep * Mathf.Deg2Rad;
                 Vector2 direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
 
-                RaycastHit2D hit = Physics2D.Raycast(playerPos, direction, ambientRadius, wallLayer);
-                float maxDistance = hit.collider != null ? hit.distance : ambientRadius;
+                float maxDistance = ambientRadius;
+                if (!gliderActive)
+                {
+                    RaycastHit2D hit = Physics2D.Raycast(playerPos, direction, ambientRadius, wallLayer);
+                    if (hit.collider != null) maxDistance = hit.distance;
+                }
 
                 MarkPointsAlongRay(playerPos, direction, maxDistance, ambientRadius);
             }
@@ -342,8 +350,12 @@ namespace Labyrinth.Visibility
                 float angle = (startAngle + i * angleStep) * Mathf.Deg2Rad;
                 Vector2 direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
 
-                RaycastHit2D hit = Physics2D.Raycast(playerPos, direction, CurrentRadius, wallLayer);
-                float maxDistance = hit.collider != null ? hit.distance : CurrentRadius;
+                float maxDistance = CurrentRadius;
+                if (!gliderActive)
+                {
+                    RaycastHit2D hit = Physics2D.Raycast(playerPos, direction, CurrentRadius, wallLayer);
+                    if (hit.collider != null) maxDistance = hit.distance;
+                }
 
                 MarkPointsAlongRay(playerPos, direction, maxDistance, CurrentRadius);
             }

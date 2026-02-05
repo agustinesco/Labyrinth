@@ -17,9 +17,11 @@ namespace Labyrinth.Items
         private MazeGrid _mazeGrid;
         private SpriteRenderer _playerSprite;
         private Color _originalColor;
+        private int _originalSortingOrder;
 
         [Header("Visual Feedback")]
         [SerializeField] private Color gliderColor = new Color(0.5f, 0.8f, 1f, 0.6f);
+        [SerializeField] private int gliderSortingOrder = 100;
 
         public bool IsActive => _isActive;
         public float RemainingDuration => _remainingDuration;
@@ -38,6 +40,7 @@ namespace Labyrinth.Items
             if (_playerSprite != null)
             {
                 _originalColor = _playerSprite.color;
+                _originalSortingOrder = _playerSprite.sortingOrder;
             }
         }
 
@@ -109,12 +112,19 @@ namespace Labyrinth.Items
         {
             if (_playerCollider == null) return;
 
-            // Find all wall colliders and ignore collision with player
-            int wallLayer = LayerMask.NameToLayer("Walls");
-            if (wallLayer >= 0)
+            // Find wall layer - try both "Wall" and "Walls", fallback to layer 8
+            int wallLayer = LayerMask.NameToLayer("Wall");
+            if (wallLayer < 0)
             {
-                Physics2D.IgnoreLayerCollision(gameObject.layer, wallLayer, enable);
+                wallLayer = LayerMask.NameToLayer("Walls");
             }
+            if (wallLayer < 0)
+            {
+                wallLayer = 8; // Default wall layer used by MazeRenderer
+            }
+
+            Physics2D.IgnoreLayerCollision(gameObject.layer, wallLayer, enable);
+            Debug.Log($"[Glider] Wall pass {(enable ? "enabled" : "disabled")} - player layer: {gameObject.layer}, wall layer: {wallLayer}");
         }
 
         private void UpdateVisual(bool active)
@@ -124,10 +134,12 @@ namespace Labyrinth.Items
             if (active)
             {
                 _playerSprite.color = gliderColor;
+                _playerSprite.sortingOrder = gliderSortingOrder;
             }
             else
             {
                 _playerSprite.color = _originalColor;
+                _playerSprite.sortingOrder = _originalSortingOrder;
             }
         }
 

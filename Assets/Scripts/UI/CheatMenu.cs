@@ -18,6 +18,9 @@ namespace Labyrinth.UI
         [SerializeField] private Button pebblesItemButton;
         [SerializeField] private Button invisibilityItemButton;
         [SerializeField] private Button wispItemButton;
+        [SerializeField] private Button gliderItemButton;
+        [SerializeField] private Button tunnelItemButton;
+        [SerializeField] private Button silkWormItemButton;
         [SerializeField] private Button xpButton;
         [SerializeField] private Button noClipButton;
         [SerializeField] private Button revealMapButton;
@@ -32,6 +35,9 @@ namespace Labyrinth.UI
         [SerializeField] private GameObject pebblesItemPrefab;
         [SerializeField] private GameObject invisibilityItemPrefab;
         [SerializeField] private GameObject wispItemPrefab;
+        [SerializeField] private GameObject gliderItemPrefab;
+        [SerializeField] private GameObject tunnelItemPrefab;
+        [SerializeField] private GameObject silkWormItemPrefab;
 
         private bool _isOpen;
 
@@ -64,6 +70,15 @@ namespace Labyrinth.UI
 
             if (wispItemButton != null)
                 wispItemButton.onClick.AddListener(() => GiveItemFromPrefab(wispItemPrefab));
+
+            if (gliderItemButton != null)
+                gliderItemButton.onClick.AddListener(() => GiveItemFromPrefab(gliderItemPrefab));
+
+            if (tunnelItemButton != null)
+                tunnelItemButton.onClick.AddListener(() => GiveItemFromPrefab(tunnelItemPrefab));
+
+            if (silkWormItemButton != null)
+                silkWormItemButton.onClick.AddListener(() => GiveItemFromPrefab(silkWormItemPrefab));
 
             if (xpButton != null)
                 xpButton.onClick.AddListener(AddXP);
@@ -187,6 +202,12 @@ namespace Labyrinth.UI
                 invisibilityItemButton.onClick.RemoveAllListeners();
             if (wispItemButton != null)
                 wispItemButton.onClick.RemoveAllListeners();
+            if (gliderItemButton != null)
+                gliderItemButton.onClick.RemoveAllListeners();
+            if (tunnelItemButton != null)
+                tunnelItemButton.onClick.RemoveAllListeners();
+            if (silkWormItemButton != null)
+                silkWormItemButton.onClick.RemoveAllListeners();
             if (xpButton != null)
                 xpButton.onClick.RemoveAllListeners();
             if (noClipButton != null)
