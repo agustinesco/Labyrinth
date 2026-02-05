@@ -11,18 +11,19 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3d4e5f6789012345678abcdef012345, type: 3}
   m_Name: Level_01_FirstSteps
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   _levelId: level_01
   _displayName: The First Steps
-  _description: Learn the basics of navigating the labyrinth. Find the key and escape before the guard catches you.
+  _description: Learn the basics of navigating the labyrinth. Find the key and escape
+    before the guard catches you.
   _icon: {fileID: 0}
-  _mazeWidth: 21
-  _mazeHeight: 21
+  _mazeWidth: 50
+  _mazeHeight: 50
   _corridorWidth: 3
-  _branchingFactor: 0.7
+  _branchingFactor: 0.3
   _keyItemPrefab: {fileID: 4001355966450260499, guid: 9e3b88b48313342baaad655a0ac9b45b, type: 3}
   _xpItemPrefab: {fileID: 2907266021306952476, guid: dd29c5da5a79e4cb38e149650b013592, type: 3}
-  _xpItemCount: 15
+  _xpItemCount: 5
   _itemPool:
   - prefab: {fileID: 206249537866367262, guid: b67a63683dc25499db625decf526be96, type: 3}
     weight: 1
@@ -30,7 +31,7 @@ MonoBehaviour:
   _generalItemCount: 5
   _enemyPool:
   - prefab: {fileID: 1492281182213793184, guid: 025a804bbd72748f9b4cfac74caa53e0, type: 3}
-    count: 1
+    count: 6
     spawnDelayOverride: 60
   _enemySpawnDelay: 60
   _objectives:
@@ -38,7 +39,7 @@ MonoBehaviour:
     _description: Reach the exit
     _targetCount: 0
     _targetTime: 0
-    _itemType:
+    _itemType: 
     _persistProgress: 0
   _unlockedByLevels: []
   _requireAllPrerequisites: 1

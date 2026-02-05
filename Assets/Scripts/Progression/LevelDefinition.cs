@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Labyrinth.Maze;
+using Labyrinth.Items;
 
 namespace Labyrinth.Progression
 {
@@ -61,6 +62,31 @@ namespace Labyrinth.Progression
         {
             var config = CreateInstance<MazeGeneratorConfig>();
             config.SetValues(_mazeWidth, _mazeHeight, _corridorWidth, _branchingFactor);
+            return config;
+        }
+
+        /// <summary>
+        /// Creates an ItemSpawnConfig from this level's item settings.
+        /// </summary>
+        public ItemSpawnConfig CreateItemSpawnConfig()
+        {
+            var config = CreateInstance<ItemSpawnConfig>();
+
+            // Convert weighted item pool to flat list
+            var itemPool = new List<GameObject>();
+            foreach (var entry in _itemPool)
+            {
+                if (entry.prefab != null)
+                {
+                    // Add prefab multiple times based on weight for weighted random selection
+                    for (int i = 0; i < entry.weight; i++)
+                    {
+                        itemPool.Add(entry.prefab);
+                    }
+                }
+            }
+
+            config.SetValues(_keyItemPrefab, _xpItemPrefab, _xpItemCount, _generalItemCount, itemPool);
             return config;
         }
     }

@@ -61,5 +61,18 @@ namespace Labyrinth.Items
         {
             return xpItemCount + generalItemCount;
         }
+
+        /// <summary>
+        /// Sets the item spawn configuration values programmatically.
+        /// Used by LevelDefinition to create configs on-the-fly.
+        /// </summary>
+        public void SetValues(GameObject keyPrefab, GameObject xpPrefab, int xpCount, int generalCount, List<GameObject> itemPool)
+        {
+            keyItemPrefab = keyPrefab;
+            xpItemPrefab = xpPrefab;
+            xpItemCount = xpCount;
+            generalItemCount = generalCount;
+            generalItemPool = itemPool ?? new List<GameObject>();
+        }
     }
 }
