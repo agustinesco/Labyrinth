@@ -33,6 +33,19 @@ namespace Labyrinth.Enemy.Awareness
         [SerializeField, Tooltip("Maximum distance for distance scaling calculation")]
         private float maxScalingDistance = 10f;
 
+        [Header("Vision Settings")]
+        [SerializeField, Tooltip("How far the enemy can see")]
+        private float visionRange = 6f;
+
+        [SerializeField, Tooltip("Field of view in degrees (360 = omnidirectional, 60 = narrow cone)")]
+        private float visionAngle = 360f;
+
+        [SerializeField, Tooltip("If true, walls block vision (raycast check)")]
+        private bool requiresLineOfSight = true;
+
+        [SerializeField, Tooltip("Layers that block vision")]
+        private LayerMask wallLayer = 1 << 8; // Default to layer 8
+
         // Public accessors
         public bool InstantDetection => instantDetection;
         public float DetectionThreshold => detectionThreshold;
@@ -41,6 +54,10 @@ namespace Labyrinth.Enemy.Awareness
         public bool StopWhileGaining => stopWhileGaining;
         public float DistanceScalingFactor => distanceScalingFactor;
         public float MaxScalingDistance => maxScalingDistance;
+        public float VisionRange => visionRange;
+        public float VisionAngle => visionAngle;
+        public bool RequiresLineOfSight => requiresLineOfSight;
+        public LayerMask WallLayer => wallLayer;
 
         /// <summary>
         /// Calculates the effective gain rate based on distance to player.

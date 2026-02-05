@@ -19,3 +19,9 @@ MonoBehaviour:
   stopWhileGaining: 0
   distanceScalingFactor: 0
   maxScalingDistance: 10
+  visionRange: 4
+  visionAngle: 360
+  requiresLineOfSight: 0
+  wallLayer:
+    serializedVersion: 2
+    m_Bits: 256

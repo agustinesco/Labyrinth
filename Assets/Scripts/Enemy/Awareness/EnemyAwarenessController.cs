@@ -5,8 +5,9 @@ using Labyrinth.Player;
 namespace Labyrinth.Enemy.Awareness
 {
     /// <summary>
-    /// Manages the awareness meter for an enemy.
-    /// Tracks how aware the enemy is of the player and triggers detection events.
+    /// Self-contained awareness system for enemies.
+    /// Automatically handles vision detection and awareness updates each frame.
+    /// Enemies only need to set their facing direction when moving.
     /// </summary>
     public class EnemyAwarenessController : MonoBehaviour
     {
@@ -19,12 +20,18 @@ namespace Labyrinth.Enemy.Awareness
         [SerializeField, Tooltip("Show visual awareness indicator above enemy")]
         private bool showIndicator = true;
 
+        [SerializeField, Tooltip("Enable automatic awareness updates (set false if enemy handles it manually)")]
+        private bool autoUpdate = true;
+
         private AwarenessIndicator _indicator;
 
         // Current awareness state
         private float _currentAwareness;
         private bool _isPlayerVisible;
         private bool _hasDetectedPlayer;
+
+        // Facing direction for vision cone (default: right)
+        private Vector2 _facingDirection = Vector2.right;
 
         // Events
         public event Action OnPlayerDetected;
@@ -38,6 +45,8 @@ namespace Labyrinth.Enemy.Awareness
         public bool HasDetectedPlayer => _hasDetectedPlayer;
         public bool ShouldStopMoving => config != null && config.StopWhileGaining && _isPlayerVisible && !_hasDetectedPlayer;
         public EnemyAwarenessConfig Config => config;
+        public Transform Player => player;
+        public Vector2 FacingDirection => _facingDirection;
 
         private void Start()
         {
@@ -63,12 +72,72 @@ namespace Labyrinth.Enemy.Awareness
             _indicator = indicatorGO.AddComponent<AwarenessIndicator>();
         }
 
+        private void Update()
+        {
+            if (!autoUpdate || config == null || player == null) return;
+
+            bool canSee = CanSeePlayer();
+            float distance = Vector2.Distance(transform.position, player.position);
+            ProcessAwareness(canSee, distance);
+        }
+
         /// <summary>
-        /// Call this each frame to update awareness based on visibility.
+        /// Sets the facing direction for vision cone calculations.
+        /// Call this when the enemy changes movement direction.
         /// </summary>
-        /// <param name="canSeePlayer">Whether the enemy can currently see the player</param>
-        /// <param name="distanceToPlayer">Distance to the player (for distance-based scaling)</param>
+        public void SetFacingDirection(Vector2 direction)
+        {
+            if (direction.sqrMagnitude > 0.001f)
+            {
+                _facingDirection = direction.normalized;
+            }
+        }
+
+        /// <summary>
+        /// Checks if the enemy can see the player based on config's vision settings.
+        /// </summary>
+        public bool CanSeePlayer()
+        {
+            if (config == null || player == null) return false;
+
+            Vector2 myPos = transform.position;
+            Vector2 playerPos = player.position;
+            Vector2 toPlayer = playerPos - myPos;
+            float distance = toPlayer.magnitude;
+
+            // Check range
+            if (distance > config.VisionRange) return false;
+
+            // Check vision angle (skip if omnidirectional)
+            if (config.VisionAngle < 360f)
+            {
+                float angle = Vector2.Angle(_facingDirection, toPlayer);
+                if (angle > config.VisionAngle / 2f) return false;
+            }
+
+            // Check line of sight
+            if (config.RequiresLineOfSight)
+            {
+                RaycastHit2D hit = Physics2D.Raycast(myPos, toPlayer.normalized, distance, config.WallLayer);
+                if (hit.collider != null) return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Manual awareness update for enemies that need custom vision logic.
+        /// Prefer using autoUpdate=true and SetFacingDirection() instead.
+        /// </summary>
         public void UpdateAwareness(bool canSeePlayer, float distanceToPlayer = 0f)
+        {
+            ProcessAwareness(canSeePlayer, distanceToPlayer);
+        }
+
+        /// <summary>
+        /// Internal method that processes awareness gain/decay.
+        /// </summary>
+        private void ProcessAwareness(bool canSeePlayer, float distanceToPlayer)
         {
             if (config == null) return;
 
@@ -172,6 +241,15 @@ namespace Labyrinth.Enemy.Awareness
         public void SetConfig(EnemyAwarenessConfig newConfig)
         {
             config = newConfig;
+        }
+
+        /// <summary>
+        /// Enables or disables automatic awareness updates.
+        /// Disable this if the enemy has custom visibility logic and calls UpdateAwareness manually.
+        /// </summary>
+        public void SetAutoUpdate(bool enabled)
+        {
+            autoUpdate = enabled;
         }
 
         private float GetPlayerSneakinessMultiplier()
