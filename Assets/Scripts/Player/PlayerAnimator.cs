@@ -12,6 +12,7 @@ namespace Labyrinth.Player
         private Vector2 _lastFacingDirection = Vector2.down;
         private int _currentAnimHash;
         private bool _facingLeft;
+        private float _lastHorizontalInput;
 
         // Thresholds with hysteresis to prevent rapid toggling
         private const float MovingThresholdHigh = 0.1f;
@@ -44,6 +45,9 @@ namespace Labyrinth.Player
             _animator.SetFloat(MoveXHash, 0f);
             _animator.SetFloat(MoveYHash, 0f);
 
+            // Initialize facing direction based on current scale
+            _facingLeft = transform.localScale.x < 0;
+
             // Play initial idle animation looking down
             _currentAnimHash = IdleLookingDownHash;
             _animator.Play(IdleLookingDownHash, 0);
@@ -74,9 +78,11 @@ namespace Labyrinth.Player
             {
                 _lastFacingDirection = facingDir;
 
-                // Update sprite flip direction only while moving and primarily horizontal
-                if (Mathf.Abs(facingDir.x) > Mathf.Abs(facingDir.y))
+                // Update sprite flip direction when there's meaningful horizontal input
+                // Use a threshold to prevent flickering from tiny input values
+                if (Mathf.Abs(facingDir.x) > 0.1f)
                 {
+                    _lastHorizontalInput = facingDir.x;
                     _facingLeft = facingDir.x < 0;
                 }
             }
@@ -147,11 +153,12 @@ namespace Labyrinth.Player
         private void ApplySpriteFlip()
         {
             Vector3 scale = transform.localScale;
-            float targetScaleX = _facingLeft ? -Mathf.Abs(scale.x) : Mathf.Abs(scale.x);
+            bool currentlyFacingLeft = scale.x < 0;
 
-            if (!Mathf.Approximately(scale.x, targetScaleX))
+            // Only flip if the direction actually changed
+            if (currentlyFacingLeft != _facingLeft)
             {
-                scale.x = targetScaleX;
+                scale.x = _facingLeft ? -Mathf.Abs(scale.x) : Mathf.Abs(scale.x);
                 transform.localScale = scale;
             }
         }

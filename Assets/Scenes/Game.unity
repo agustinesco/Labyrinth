@@ -9316,6 +9316,7 @@ MonoBehaviour:
   wallTilemap: {fileID: 0}
   floorTilemap: {fileID: 0}
   grassTilemap: {fileID: 0}
+  decorationTilemap: {fileID: 0}
   wallTiles:
   - {fileID: 11400000, guid: 6247fbac21b8d49619aff039553471ae, type: 2}
   - {fileID: 11400000, guid: 6bc98d560c6824678bfa32940f4cbbda, type: 2}
@@ -9324,10 +9325,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8bb16bfa30d7848aa9aea7ac8046707f, type: 2}
   - {fileID: 11400000, guid: c39087deb95764ca9954e72db12b22de, type: 2}
   - {fileID: 11400000, guid: 4a60ebd823bf14f6cb85ded235ddb525, type: 2}
-  floorTileCenter: {fileID: 11400000, guid: 3578043db2773493baca75ce1c46d950, type: 2}
-  floorTileLeft: {fileID: 11400000, guid: 9522c1ba3265e4760bc94791bfe9c1cf, type: 2}
-  floorTileRight: {fileID: 11400000, guid: bab09753a62bd4a7caeec2c663c3ee97, type: 2}
-  floorTileCorner: {fileID: 11400000, guid: 8644d6e6e4c784923aedb289fa894fb8, type: 2}
+  floorTileCenter: {fileID: 11400000, guid: de3c702a2a47b4122a957b4c717152e7, type: 2}
+  floorTileOneWall: {fileID: 11400000, guid: 80b871a4a3e084c80bd69452ead554b0, type: 2}
+  floorTileWallAbove: {fileID: 11400000, guid: 9d02b07e539cd440ab7a5686e322bccc, type: 2}
+  floorTileCorner: {fileID: 11400000, guid: 9ffc6924fc6164f538d364853f39a02b, type: 2}
+  floorTileDiagonalWall: {fileID: 11400000, guid: 7728aaa36cfe449fe8b502383a92ebc0, type: 2}
   wallTileIsolated: {fileID: 11400000, guid: f8efbb27a64414dc2b659ffa839e3bf1, type: 2}
   wallTileCorner: {fileID: 11400000, guid: 3e573665f7ca044cb9d23294cbad2f1f, type: 2}
   wallTileEndCap: {fileID: 11400000, guid: 8ccd48db9d7a144e2b11b1fd4cf1fb6a, type: 2}
@@ -9337,6 +9339,21 @@ MonoBehaviour:
   grassTileCorner: {fileID: 11400000, guid: 2ce04b70b02b64038a770ab93a09a639, type: 2}
   grassTileInnerCorner: {fileID: 11400000, guid: 5ab6641c78d86478b94435e8ff544880, type: 2}
   grassSortingOrder: 100
+  decorationTiles:
+  - tile: {fileID: 11400000, guid: 3bc70fdc7f42644fe8b0ce14b10bf26d, type: 2}
+    weight: 1
+  - tile: {fileID: 11400000, guid: e7f9cc77aace7473da920a7b3041a978, type: 2}
+    weight: 1
+  - tile: {fileID: 11400000, guid: c068952e7f75349719a4595179959063, type: 2}
+    weight: 1
+  - tile: {fileID: 11400000, guid: d4e1a4119aa0b4593b6cff0ef5899613, type: 2}
+    weight: 1
+  - tile: {fileID: 11400000, guid: 264ed7e2ab07c46218de285a4a5030af, type: 2}
+    weight: 1
+  - tile: {fileID: 11400000, guid: de2d2cdd2802a47668727ec860211782, type: 2}
+    weight: 1
+  decorationCoverage: 15
+  decorationSortingOrder: 1
   wallColor: {r: 0.35, g: 0.24, b: 0.12, a: 1}
   floorColor: {r: 0.4, g: 0.3, b: 0.2, a: 1}
   startMarkerPrefab: {fileID: 0}

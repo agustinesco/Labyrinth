@@ -3,6 +3,13 @@ using UnityEngine.Tilemaps;
 
 namespace Labyrinth.Maze
 {
+    [System.Serializable]
+    public struct DecorationTile
+    {
+        public TileBase tile;
+        [Min(0f)] public float weight;
+    }
+
     [RequireComponent(typeof(Grid))]
     public class MazeRenderer : MonoBehaviour
     {
@@ -10,20 +17,23 @@ namespace Labyrinth.Maze
         [SerializeField] private Tilemap wallTilemap;
         [SerializeField] private Tilemap floorTilemap;
         [SerializeField] private Tilemap grassTilemap;
+        [SerializeField] private Tilemap decorationTilemap;
 
         [Header("Tiles")]
         [SerializeField] private TileBase[] wallTiles;
         [SerializeField] private TileBase[] floorTiles;
 
         [Header("Rule-Based Floor Tiles")]
-        [SerializeField, Tooltip("Used for floor tiles not connected to any wall")]
+        [SerializeField, Tooltip("4 adjacent floors, 0 walls")]
         private TileBase floorTileCenter;
-        [SerializeField, Tooltip("Used for floor tiles connected to wall on left or top")]
-        private TileBase floorTileLeft;
-        [SerializeField, Tooltip("Used for floor tiles connected to wall on right or bottom")]
-        private TileBase floorTileRight;
-        [SerializeField, Tooltip("Used for floor tiles connected to 2 adjacent continuous walls (corner)")]
+        [SerializeField, Tooltip("1 adjacent wall (bottom/left/right). Base rotation: wall below")]
+        private TileBase floorTileOneWall;
+        [SerializeField, Tooltip("1 adjacent wall on top only")]
+        private TileBase floorTileWallAbove;
+        [SerializeField, Tooltip("2 adjacent continuous walls (corner). Base rotation: wall bottom+right")]
         private TileBase floorTileCorner;
+        [SerializeField, Tooltip("0 cardinal walls, 1 diagonal wall. Base rotation: bottom-left diagonal wall")]
+        private TileBase floorTileDiagonalWall;
 
         [Header("Rule-Based Wall Tiles")]
         [SerializeField, Tooltip("Used for walls without any surrounding walls (isolated)")]
@@ -46,6 +56,12 @@ namespace Labyrinth.Maze
         private TileBase grassTileInnerCorner;
         [SerializeField] private int grassSortingOrder = 100;
 
+        [Header("Decoration Tiles (Random Floor Overlay)")]
+        [SerializeField] private DecorationTile[] decorationTiles;
+        [SerializeField, Range(0f, 100f), Tooltip("Percentage of floor tiles that get a decoration")]
+        private float decorationCoverage = 15f;
+        [SerializeField] private int decorationSortingOrder = 1;
+
         [Header("Fallback Colors (if no tiles assigned)")]
         [SerializeField] private Color wallColor = new Color(0.35f, 0.24f, 0.12f);
         [SerializeField] private Color floorColor = new Color(0.4f, 0.3f, 0.2f);
@@ -67,6 +83,7 @@ namespace Labyrinth.Maze
         public Tilemap WallTilemap => wallTilemap;
         public Tilemap FloorTilemap => floorTilemap;
         public Tilemap GrassTilemap => grassTilemap;
+        public Tilemap DecorationTilemap => decorationTilemap;
 
         public void RenderMaze(MazeGrid grid)
         {
@@ -139,6 +156,9 @@ namespace Labyrinth.Maze
 
             // Render grass overlay tiles
             RenderGrassTiles(grid);
+
+            // Render random decoration overlay tiles
+            RenderDecorationTiles(grid);
         }
 
         private void RenderGrassTiles(MazeGrid grid)
@@ -199,6 +219,57 @@ namespace Labyrinth.Maze
                                 grassTilemap.SetTransformMatrix(tilePosition, matrix);
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        private void RenderDecorationTiles(MazeGrid grid)
+        {
+            if (decorationTilemap == null || decorationTiles == null || decorationTiles.Length == 0)
+                return;
+
+            float totalWeight = 0f;
+            foreach (var dt in decorationTiles)
+            {
+                if (dt.tile != null)
+                    totalWeight += dt.weight;
+            }
+
+            if (totalWeight <= 0f)
+                return;
+
+            float coverageNormalized = decorationCoverage / 100f;
+
+            for (int x = 0; x < grid.Width; x++)
+            {
+                for (int y = 0; y < grid.Height; y++)
+                {
+                    if (grid.GetCell(x, y).IsWall)
+                        continue;
+
+                    if (UnityEngine.Random.value > coverageNormalized)
+                        continue;
+
+                    // Weighted random selection
+                    float roll = UnityEngine.Random.value * totalWeight;
+                    float cumulative = 0f;
+                    TileBase chosenTile = null;
+
+                    foreach (var dt in decorationTiles)
+                    {
+                        if (dt.tile == null) continue;
+                        cumulative += dt.weight;
+                        if (roll <= cumulative)
+                        {
+                            chosenTile = dt.tile;
+                            break;
+                        }
+                    }
+
+                    if (chosenTile != null)
+                    {
+                        decorationTilemap.SetTile(new Vector3Int(x, y, 0), chosenTile);
                     }
                 }
             }
@@ -407,6 +478,35 @@ namespace Labyrinth.Maze
                 }
             }
 
+            // Create Decoration Tilemap if not assigned (renders above floor, no collision)
+            if (decorationTilemap == null)
+            {
+                Transform existingDeco = transform.Find("DecorationTilemap");
+                if (existingDeco != null)
+                {
+                    decorationTilemap = existingDeco.GetComponent<Tilemap>();
+                }
+                else
+                {
+                    GameObject decoObj = new GameObject("DecorationTilemap");
+                    decoObj.transform.SetParent(transform);
+                    decoObj.transform.localPosition = Vector3.zero;
+
+                    decorationTilemap = decoObj.AddComponent<Tilemap>();
+                    TilemapRenderer decoRenderer = decoObj.AddComponent<TilemapRenderer>();
+                    decoRenderer.sortingOrder = decorationSortingOrder;
+                    // No collider - purely decorative
+                }
+            }
+            else
+            {
+                var decoRenderer = decorationTilemap.GetComponent<TilemapRenderer>();
+                if (decoRenderer != null)
+                {
+                    decoRenderer.sortingOrder = decorationSortingOrder;
+                }
+            }
+
             // Create fallback tiles if no tiles assigned
             CreateFallbackTiles();
         }
@@ -457,86 +557,83 @@ namespace Labyrinth.Maze
 
         /// <summary>
         /// Determines the appropriate floor tile and rotation based on adjacent walls.
-        /// - 2 adjacent continuous walls (corner) → floorTileCorner with rotation
-        /// - Left wall → floorTileLeft (no rotation)
-        /// - Top wall → floorTileLeft rotated 90° CW to face down
-        /// - Right wall → floorTileRight (no rotation)
-        /// - Bottom wall → floorTileRight rotated 90° CW to face up
-        /// - No adjacent walls → floorTileCenter
-        /// Falls back to random floor tile if rule tiles aren't assigned.
+        /// - 2 adjacent continuous walls (corner) → floorTileCorner (base: bottom+right walls)
+        /// - 1 wall on top → floorTileWallAbove
+        /// - 1 wall on bottom/left/right → floorTileOneWall (base: wall below)
+        /// - 0 walls → floorTileCenter
         /// </summary>
         private (TileBase tile, float rotation) GetFloorTileForPosition(int x, int y)
         {
-            // Check if rule-based tiles are assigned
-            bool hasRuleTiles = floorTileCenter != null || floorTileLeft != null || floorTileRight != null || floorTileCorner != null;
+            bool hasRuleTiles = floorTileCenter != null || floorTileOneWall != null ||
+                                floorTileWallAbove != null || floorTileCorner != null ||
+                                floorTileDiagonalWall != null;
 
             if (!hasRuleTiles)
             {
-                // Fall back to random floor tile
                 return (GetRandomTile(floorTiles, _fallbackFloorTile), 0f);
             }
 
-            // Check adjacent cells for walls
             bool leftIsWall = IsWallAt(x - 1, y);
             bool rightIsWall = IsWallAt(x + 1, y);
             bool topIsWall = IsWallAt(x, y + 1);
             bool bottomIsWall = IsWallAt(x, y - 1);
 
-            // Count adjacent walls
             int adjacentWallCount = (leftIsWall ? 1 : 0) + (rightIsWall ? 1 : 0) +
                                     (topIsWall ? 1 : 0) + (bottomIsWall ? 1 : 0);
 
-            // Check for corner cases (2 adjacent continuous walls) - highest priority
+            // 2 adjacent continuous walls (corner) — base rotation: bottom+right are walls
             if (adjacentWallCount == 2 && floorTileCorner != null)
             {
-                // Bottom-Left corner (walls below and to the left)
-                if (bottomIsWall && leftIsWall)
-                {
-                    return (floorTileCorner, -90f);
-                }
-                // Left-Top corner (walls to the left and above)
-                if (leftIsWall && topIsWall)
-                {
-                    return (floorTileCorner, -180f);
-                }
-                // Top-Right corner (walls above and to the right)
-                if (topIsWall && rightIsWall)
-                {
-                    return (floorTileCorner, 90f);
-                }
-                // Right-Bottom corner (walls to the right and below)
-                if (rightIsWall && bottomIsWall)
-                {
+                if (bottomIsWall && rightIsWall)
                     return (floorTileCorner, 0f);
+                if (rightIsWall && topIsWall)
+                    return (floorTileCorner, 90f);
+                if (topIsWall && leftIsWall)
+                    return (floorTileCorner, 180f);
+                if (leftIsWall && bottomIsWall)
+                    return (floorTileCorner, -90f);
+            }
+
+            // 1 adjacent wall
+            if (adjacentWallCount == 1)
+            {
+                // Wall on top — special tile
+                if (topIsWall && floorTileWallAbove != null)
+                    return (floorTileWallAbove, 0f);
+
+                // Wall on bottom/left/right — base rotation: wall below
+                if (floorTileOneWall != null)
+                {
+                    if (bottomIsWall)
+                        return (floorTileOneWall, 0f);
+                    if (rightIsWall)
+                        return (floorTileOneWall, 90f);
+                    if (leftIsWall)
+                        return (floorTileOneWall, -90f);
                 }
             }
 
-            // Priority order: left, top, right, bottom
-            // Left wall - use floorTileLeft without rotation
-            if (leftIsWall)
+            // 0 adjacent walls — check for diagonal walls
+            if (adjacentWallCount == 0 && floorTileDiagonalWall != null)
             {
-                return (floorTileLeft ?? GetRandomTile(floorTiles, _fallbackFloorTile), 0f);
+                bool bottomLeftIsWall = IsWallAt(x - 1, y - 1);
+                bool topLeftIsWall = IsWallAt(x - 1, y + 1);
+                bool topRightIsWall = IsWallAt(x + 1, y + 1);
+                bool bottomRightIsWall = IsWallAt(x + 1, y - 1);
+
+                int diagonalWallCount = (bottomLeftIsWall ? 1 : 0) + (topLeftIsWall ? 1 : 0) +
+                                        (topRightIsWall ? 1 : 0) + (bottomRightIsWall ? 1 : 0);
+
+                if (diagonalWallCount == 1)
+                {
+                    if (bottomLeftIsWall) return (floorTileDiagonalWall, 0f);
+                    if (topLeftIsWall) return (floorTileDiagonalWall, -90f);
+                    if (topRightIsWall) return (floorTileDiagonalWall, 180f);
+                    if (bottomRightIsWall) return (floorTileDiagonalWall, 90f);
+                }
             }
 
-            // Top wall - use floorTileLeft rotated 90° clockwise (facing down)
-            if (topIsWall)
-            {
-                return (floorTileLeft ?? GetRandomTile(floorTiles, _fallbackFloorTile), -90f);
-            }
-
-            // Right wall - use floorTileRight without rotation
-            if (rightIsWall)
-            {
-                return (floorTileRight ?? GetRandomTile(floorTiles, _fallbackFloorTile), 0f);
-            }
-
-            // Bottom wall - use floorTileRight rotated 90° clockwise (facing up)
-            if (bottomIsWall)
-            {
-                return (floorTileRight ?? GetRandomTile(floorTiles, _fallbackFloorTile), -90f);
-            }
-
-            // No adjacent walls - use center tile
+            // 0 adjacent walls — open floor
             return (floorTileCenter ?? GetRandomTile(floorTiles, _fallbackFloorTile), 0f);
         }
 
@@ -698,6 +795,9 @@ namespace Labyrinth.Maze
 
             if (grassTilemap != null)
                 grassTilemap.ClearAllTiles();
+
+            if (decorationTilemap != null)
+                decorationTilemap.ClearAllTiles();
 
             if (_markersParent != null)
             {
