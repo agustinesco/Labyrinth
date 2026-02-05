@@ -144,7 +144,7 @@ TextureImporter:
         width: 134
         height: 195
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -165,7 +165,7 @@ TextureImporter:
         width: 146
         height: 218
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -173,6 +173,48 @@ TextureImporter:
       bones: []
       spriteID: 4f2b9d9f7801343ecb7878cca9e2f0a7
       internalID: 1050248805
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TX_MirrasMaze_Cards+Selector_2
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 171
+        width: 73
+        height: 73
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c3ba77146cfd34121922b3c52a570882
+      internalID: 2050065557
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TX_MirrasMaze_Cards+Selector_3
+      rect:
+        serializedVersion: 2
+        x: 99
+        y: 163
+        width: 89
+        height: 89
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c4f1b94398f9f48da9e0c2b12ae6d1ef
+      internalID: 1111980781
       vertices: []
       indices: 
       edges: []
@@ -190,6 +232,8 @@ TextureImporter:
     nameFileIdTable:
       TX_MirrasMaze_Cards+Selector_0: 332828381
       TX_MirrasMaze_Cards+Selector_1: 1050248805
+      TX_MirrasMaze_Cards+Selector_2: 2050065557
+      TX_MirrasMaze_Cards+Selector_3: 1111980781
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
