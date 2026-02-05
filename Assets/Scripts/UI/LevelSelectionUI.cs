@@ -274,7 +274,7 @@ namespace Labyrinth.UI
             }
         }
 
-        private void OnBackClicked()
+        public void OnBackClicked()
         {
             SceneManager.LoadScene("MainMenu");
         }
