@@ -29,6 +29,10 @@ namespace Labyrinth.Enemy.Awareness
         private float _currentAlpha;
         private bool _isVisible;
 
+        // Cached resources to prevent memory leaks
+        private Texture2D _cachedTexture;
+        private Sprite _cachedSprite;
+
         private void Awake()
         {
             _awarenessController = GetComponentInParent<EnemyAwarenessController>();
@@ -52,7 +56,7 @@ namespace Labyrinth.Enemy.Awareness
             backgroundGO.transform.localScale = new Vector3(barWidth, barHeight, 1f);
 
             _backgroundRenderer = backgroundGO.AddComponent<SpriteRenderer>();
-            _backgroundRenderer.sprite = CreateSquareSprite();
+            _backgroundRenderer.sprite = GetOrCreateSquareSprite();
             _backgroundRenderer.color = backgroundColor;
             _backgroundRenderer.sortingOrder = 100;
 
@@ -64,7 +68,7 @@ namespace Labyrinth.Enemy.Awareness
             _fillTransform.localScale = new Vector3(0, barHeight, 1f);
 
             _fillRenderer = fillGO.AddComponent<SpriteRenderer>();
-            _fillRenderer.sprite = CreateSquareSprite();
+            _fillRenderer.sprite = GetOrCreateSquareSprite();
             _fillRenderer.color = fillColorLow;
             _fillRenderer.sortingOrder = 101;
 
@@ -75,16 +79,21 @@ namespace Labyrinth.Enemy.Awareness
             SetAlpha(0f);
         }
 
-        private Sprite CreateSquareSprite()
+        private Sprite GetOrGetOrCreateSquareSprite()
         {
-            Texture2D texture = new Texture2D(4, 4);
+            // Return cached sprite if already created
+            if (_cachedSprite != null)
+                return _cachedSprite;
+
+            _cachedTexture = new Texture2D(4, 4);
             Color[] colors = new Color[16];
             for (int i = 0; i < 16; i++)
                 colors[i] = Color.white;
-            texture.SetPixels(colors);
-            texture.Apply();
+            _cachedTexture.SetPixels(colors);
+            _cachedTexture.Apply();
 
-            return Sprite.Create(texture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f), 4f);
+            _cachedSprite = Sprite.Create(_cachedTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f), 4f);
+            return _cachedSprite;
         }
 
         private void OnAwarenessChanged(float awareness)
@@ -160,6 +169,18 @@ namespace Labyrinth.Enemy.Awareness
             if (_awarenessController != null)
             {
                 _awarenessController.OnAwarenessChanged -= OnAwarenessChanged;
+            }
+
+            // Clean up cached resources to prevent memory leaks
+            if (_cachedSprite != null)
+            {
+                Destroy(_cachedSprite);
+                _cachedSprite = null;
+            }
+            if (_cachedTexture != null)
+            {
+                Destroy(_cachedTexture);
+                _cachedTexture = null;
             }
         }
     }
