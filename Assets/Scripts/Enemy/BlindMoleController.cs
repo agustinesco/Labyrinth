@@ -27,7 +27,6 @@ namespace Labyrinth.Enemy
         [SerializeField] private float hidingDuration = 1f;
 
         [Header("Detection")]
-        [SerializeField] private float detectionRadius = 4f;
         [SerializeField] private float movementThreshold = 0.1f;
 
         [Header("Projectile")]
@@ -61,7 +60,7 @@ namespace Labyrinth.Enemy
             if (spriteRenderer == null)
                 spriteRenderer = GetComponent<SpriteRenderer>();
 
-            // Setup awareness controller (moles use instant detection)
+            // Setup awareness controller (moles use instant detection and movement-based detection)
             _awarenessController = GetComponent<EnemyAwarenessController>();
             if (_awarenessController == null)
             {
@@ -71,6 +70,8 @@ namespace Labyrinth.Enemy
             {
                 _awarenessController.SetConfig(awarenessConfig);
             }
+            // Disable auto-update since moles have custom movement-based detection
+            _awarenessController.SetAutoUpdate(false);
 
             FindPlayer();
             EnterState(MoleState.Inactive);
@@ -192,9 +193,10 @@ namespace Labyrinth.Enemy
             if (_player == null)
                 return;
 
-            // Check if player is in detection range
+            // Check if player is in detection range (uses config's VisionRange)
             float distanceToPlayer = Vector2.Distance(transform.position, _player.position);
-            bool playerInRange = distanceToPlayer <= detectionRadius;
+            float detectionRange = _awarenessController?.Config?.VisionRange ?? 4f;
+            bool playerInRange = distanceToPlayer <= detectionRange;
 
             if (playerInRange)
             {
@@ -326,9 +328,10 @@ namespace Labyrinth.Enemy
 
         private void OnDrawGizmosSelected()
         {
-            // Draw detection radius
+            // Draw detection radius (from config or default)
+            float detectionRange = _awarenessController?.Config?.VisionRange ?? 4f;
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, detectionRadius);
+            Gizmos.DrawWireSphere(transform.position, detectionRange);
         }
     }
 }

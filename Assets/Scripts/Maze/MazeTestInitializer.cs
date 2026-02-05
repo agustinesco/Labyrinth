@@ -1,30 +1,40 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Labyrinth.Items;
 using Labyrinth.Enemy;
+using Labyrinth.Progression;
 
 namespace Labyrinth.Maze
 {
     /// <summary>
     /// Simplified maze initializer for testing maze generation.
     /// Generates the maze with optional items and enemies, no fog of war or player.
+    /// Supports testing with LevelDefinition or manual configuration.
     /// </summary>
     public class MazeTestInitializer : MonoBehaviour
     {
-        [Header("Maze Configuration")]
-        [SerializeField, Tooltip("Maze generation configuration asset")]
+        [Header("Level Configuration (Priority)")]
+        [SerializeField, Tooltip("Level definition to test. If set, overrides manual maze config.")]
+        private LevelDefinition levelDefinition;
+
+        [SerializeField, Tooltip("Available levels to choose from via buttons")]
+        private List<LevelDefinition> availableLevels = new();
+
+        [Header("Manual Maze Configuration")]
+        [SerializeField, Tooltip("Maze generation configuration asset (used if no LevelDefinition)")]
         private MazeGeneratorConfig mazeConfig;
 
         [Header("Item Configuration")]
-        [SerializeField, Tooltip("Item spawn configuration asset (optional)")]
+        [SerializeField, Tooltip("Item spawn configuration asset (optional, used alongside any maze config)")]
         private ItemSpawnConfig itemConfig;
 
         [SerializeField, Tooltip("Item spawner component")]
         private ItemSpawner itemSpawner;
 
         [Header("Enemy Configuration")]
-        [SerializeField, Tooltip("Enemy spawn configuration asset (optional)")]
+        [SerializeField, Tooltip("Enemy spawn configuration asset (optional, used alongside any maze config)")]
         private EnemySpawnConfig enemyConfig;
 
         [SerializeField, Tooltip("Enemy spawner manager component")]
@@ -40,6 +50,14 @@ namespace Labyrinth.Maze
         [SerializeField] private Button regenerateEnemiesButton;
         [SerializeField] private Button deleteEnemiesButton;
 
+        [Header("Level Selection UI")]
+        [SerializeField, Tooltip("Container for level selection buttons")]
+        private Transform levelButtonContainer;
+        [SerializeField, Tooltip("Prefab for level selection button (needs Button and TMP_Text child)")]
+        private GameObject levelButtonPrefab;
+        [SerializeField, Tooltip("Button to clear level selection and use manual config")]
+        private Button clearLevelButton;
+
         [Header("UI Display")]
         [SerializeField] private TextMeshProUGUI infoText;
 
@@ -48,6 +66,8 @@ namespace Labyrinth.Maze
         private int _currentSeed;
         private Vector2 _startPos;
         private Vector2 _exitPos;
+        private MazeGeneratorConfig _activeMazeConfig;
+        private List<Button> _createdLevelButtons = new();
 
         private void Start()
         {
@@ -72,24 +92,59 @@ namespace Labyrinth.Maze
                 deleteEnemiesButton.onClick.AddListener(DeleteEnemies);
             }
 
-            // Setup item spawner config if provided
-            if (itemSpawner != null && itemConfig != null)
+            if (clearLevelButton != null)
             {
-                itemSpawner.SpawnConfig = itemConfig;
+                clearLevelButton.onClick.AddListener(ClearLevelSelection);
             }
 
-            // Setup enemy spawner config if provided
-            if (enemySpawnerManager != null && enemyConfig != null)
-            {
-                enemySpawnerManager.SpawnConfig = enemyConfig;
-            }
+            // Create level selection buttons
+            CreateLevelButtons();
+
+            // Setup configs based on level definition or manual config
+            SetupConfigs();
 
             GenerateMaze();
         }
 
+        private void SetupConfigs()
+        {
+            if (levelDefinition != null)
+            {
+                // Use LevelDefinition's maze config
+                _activeMazeConfig = levelDefinition.CreateMazeConfig();
+                Debug.Log($"[MazeTestInitializer] Using LevelDefinition: {levelDefinition.DisplayName}");
+
+                // Use LevelDefinition's item config (respects XP count and general item count)
+                if (itemSpawner != null)
+                {
+                    var levelItemConfig = levelDefinition.CreateItemSpawnConfig();
+                    itemSpawner.SpawnConfig = levelItemConfig;
+                    Debug.Log($"[MazeTestInitializer] Using level item config - XP: {levelItemConfig.XpItemCount}, Items: {levelItemConfig.GeneralItemCount}");
+                }
+            }
+            else if (mazeConfig != null)
+            {
+                // Use manual maze config
+                _activeMazeConfig = mazeConfig;
+                Debug.Log("[MazeTestInitializer] Using manual MazeGeneratorConfig");
+
+                // Use manual item config when no LevelDefinition
+                if (itemSpawner != null && itemConfig != null)
+                {
+                    itemSpawner.SpawnConfig = itemConfig;
+                }
+            }
+
+            // Setup enemy spawner config (works with both LevelDefinition and manual config)
+            if (enemySpawnerManager != null && enemyConfig != null)
+            {
+                enemySpawnerManager.SpawnConfig = enemyConfig;
+            }
+        }
+
         private void GenerateMaze()
         {
-            if (mazeConfig == null)
+            if (_activeMazeConfig == null)
             {
                 Debug.LogError("[MazeTestInitializer] No MazeGeneratorConfig assigned!");
                 return;
@@ -102,7 +157,7 @@ namespace Labyrinth.Maze
             _currentSeed = Random.Range(0, int.MaxValue);
 
             // Generate maze using config with random seed override
-            var generator = mazeConfig.CreateGenerator(_currentSeed);
+            var generator = _activeMazeConfig.CreateGenerator(_currentSeed);
             Grid = generator.Generate();
 
             // Render the maze
@@ -205,30 +260,106 @@ namespace Labyrinth.Maze
                 mainCamera = Camera.main;
             }
 
-            if (mainCamera != null)
+            if (mainCamera != null && _activeMazeConfig != null)
             {
                 // Center camera on maze
                 mainCamera.transform.position = new Vector3(
-                    mazeConfig.Width / 2f,
-                    mazeConfig.Height / 2f,
+                    _activeMazeConfig.Width / 2f,
+                    _activeMazeConfig.Height / 2f,
                     -10f
                 );
 
                 // Set orthographic size to fit maze
-                float verticalSize = mazeConfig.Height / 2f + 1f;
-                float horizontalSize = (mazeConfig.Width / 2f + 1f) / mainCamera.aspect;
+                float verticalSize = _activeMazeConfig.Height / 2f + 1f;
+                float horizontalSize = (_activeMazeConfig.Width / 2f + 1f) / mainCamera.aspect;
                 mainCamera.orthographicSize = Mathf.Max(verticalSize, horizontalSize);
             }
         }
 
         private void UpdateInfoText()
         {
-            if (infoText != null)
+            if (infoText != null && _activeMazeConfig != null)
             {
-                string itemInfo = itemConfig != null ? $" | XP: {itemConfig.XpItemCount} | Items: {itemConfig.GeneralItemCount}" : "";
+                string levelInfo = levelDefinition != null ? $"Level: {levelDefinition.DisplayName} | " : "";
+                string itemInfo;
+                if (levelDefinition != null)
+                {
+                    itemInfo = $" | XP: {levelDefinition.XpItemCount} | Items: {levelDefinition.GeneralItemCount}";
+                }
+                else if (itemConfig != null)
+                {
+                    itemInfo = $" | XP: {itemConfig.XpItemCount} | Items: {itemConfig.GeneralItemCount}";
+                }
+                else
+                {
+                    itemInfo = "";
+                }
                 string enemyInfo = enemyConfig != null ? $" | Guards: {enemyConfig.MaxPatrollingGuards} | Moles: {enemyConfig.MaxBlindMoles}" : "";
-                infoText.text = $"Size: {mazeConfig.Width}x{mazeConfig.Height} | Corridor: {mazeConfig.GetValidatedCorridorWidth()} | Seed: {_currentSeed}{itemInfo}{enemyInfo}";
+                infoText.text = $"{levelInfo}Size: {_activeMazeConfig.Width}x{_activeMazeConfig.Height} | Corridor: {_activeMazeConfig.GetValidatedCorridorWidth()} | Seed: {_currentSeed}{itemInfo}{enemyInfo}";
             }
+        }
+
+        private void CreateLevelButtons()
+        {
+            if (levelButtonContainer == null || levelButtonPrefab == null)
+            {
+                return;
+            }
+
+            // Clear existing buttons
+            foreach (var btn in _createdLevelButtons)
+            {
+                if (btn != null)
+                {
+                    Destroy(btn.gameObject);
+                }
+            }
+            _createdLevelButtons.Clear();
+
+            // Create button for each available level
+            foreach (var level in availableLevels)
+            {
+                if (level == null) continue;
+
+                var buttonObj = Instantiate(levelButtonPrefab, levelButtonContainer);
+                var button = buttonObj.GetComponent<Button>();
+                var text = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
+
+                if (text != null)
+                {
+                    text.text = level.DisplayName;
+                }
+
+                if (button != null)
+                {
+                    // Capture level in closure
+                    var capturedLevel = level;
+                    button.onClick.AddListener(() => SelectLevel(capturedLevel));
+                    _createdLevelButtons.Add(button);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Selects a level and regenerates the maze with its configuration.
+        /// </summary>
+        public void SelectLevel(LevelDefinition level)
+        {
+            levelDefinition = level;
+            SetupConfigs();
+            GenerateMaze();
+            Debug.Log($"[MazeTestInitializer] Selected level: {level.DisplayName}");
+        }
+
+        /// <summary>
+        /// Clears level selection and uses manual maze config.
+        /// </summary>
+        public void ClearLevelSelection()
+        {
+            levelDefinition = null;
+            SetupConfigs();
+            GenerateMaze();
+            Debug.Log("[MazeTestInitializer] Cleared level selection, using manual config");
         }
 
         private void OnDestroy()
@@ -252,6 +383,21 @@ namespace Labyrinth.Maze
             {
                 deleteEnemiesButton.onClick.RemoveListener(DeleteEnemies);
             }
+
+            if (clearLevelButton != null)
+            {
+                clearLevelButton.onClick.RemoveListener(ClearLevelSelection);
+            }
+
+            // Clean up dynamically created buttons
+            foreach (var btn in _createdLevelButtons)
+            {
+                if (btn != null)
+                {
+                    btn.onClick.RemoveAllListeners();
+                }
+            }
+            _createdLevelButtons.Clear();
         }
     }
 }
