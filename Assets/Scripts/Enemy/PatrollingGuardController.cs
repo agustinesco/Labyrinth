@@ -4,6 +4,7 @@ using Labyrinth.Maze;
 using Labyrinth.Player;
 using Labyrinth.Core;
 using Labyrinth.Items;
+using Labyrinth.Enemy.Awareness;
 
 namespace Labyrinth.Enemy
 {
@@ -11,6 +12,7 @@ namespace Labyrinth.Enemy
     {
         Patrolling,
         Paused,
+        GainingAwareness, // Stopped, building awareness of player
         Chasing,
         Investigating,  // Going to last seen player position
         SearchingAround, // Looking around at last seen position
@@ -42,7 +44,11 @@ namespace Labyrinth.Enemy
         [SerializeField] private int damage = 1;
         [SerializeField] private float attackCooldown = 2f;
 
+        [Header("Awareness")]
+        [SerializeField] private EnemyAwarenessConfig awarenessConfig;
+
         private Transform _player;
+        private EnemyAwarenessController _awarenessController;
         private MazeGrid _grid;
         private Pathfinding _pathfinding;
         private SpriteRenderer _spriteRenderer;
@@ -95,6 +101,18 @@ namespace Labyrinth.Enemy
             _pathfinding = new Pathfinding(grid);
             _spriteRenderer = GetComponent<SpriteRenderer>();
 
+            // Setup awareness controller
+            _awarenessController = GetComponent<EnemyAwarenessController>();
+            if (_awarenessController == null)
+            {
+                _awarenessController = gameObject.AddComponent<EnemyAwarenessController>();
+            }
+            if (awarenessConfig != null)
+            {
+                _awarenessController.SetConfig(awarenessConfig);
+            }
+            _awarenessController.OnPlayerDetected += OnAwarenessDetection;
+
             // Start at first waypoint
             _currentWaypointIndex = 0;
 
@@ -124,6 +142,9 @@ namespace Labyrinth.Enemy
                 case GuardState.Paused:
                     UpdatePaused();
                     break;
+                case GuardState.GainingAwareness:
+                    UpdateGainingAwareness();
+                    break;
                 case GuardState.Chasing:
                     UpdateChasing();
                     break;
@@ -141,10 +162,15 @@ namespace Labyrinth.Enemy
 
         private void UpdatePatrolling()
         {
-            // Check for player detection
-            if (CanSeePlayer())
+            // Update awareness system
+            bool canSee = CanSeePlayer();
+            float distanceToPlayer = _player != null ? Vector2.Distance(transform.position, _player.position) : 0f;
+            _awarenessController?.UpdateAwareness(canSee, distanceToPlayer);
+
+            // If config says to stop while gaining awareness and we can see player
+            if (canSee && _awarenessController != null && _awarenessController.ShouldStopMoving)
             {
-                StartChasing();
+                _currentState = GuardState.GainingAwareness;
                 return;
             }
 
@@ -170,10 +196,15 @@ namespace Labyrinth.Enemy
 
         private void UpdatePaused()
         {
-            // Check for player detection even while paused
-            if (CanSeePlayer())
+            // Update awareness system even while paused
+            bool canSee = CanSeePlayer();
+            float distanceToPlayer = _player != null ? Vector2.Distance(transform.position, _player.position) : 0f;
+            _awarenessController?.UpdateAwareness(canSee, distanceToPlayer);
+
+            // If config says to stop while gaining awareness and we can see player
+            if (canSee && _awarenessController != null && _awarenessController.ShouldStopMoving)
             {
-                StartChasing();
+                _currentState = GuardState.GainingAwareness;
                 return;
             }
 
@@ -182,6 +213,40 @@ namespace Labyrinth.Enemy
             {
                 UpdateFacingDirection();
                 _currentState = GuardState.Patrolling;
+            }
+        }
+
+        private void UpdateGainingAwareness()
+        {
+            // Continue updating awareness - guard is stopped, watching player
+            bool canSee = CanSeePlayer();
+            float distanceToPlayer = _player != null ? Vector2.Distance(transform.position, _player.position) : 0f;
+            _awarenessController?.UpdateAwareness(canSee, distanceToPlayer);
+
+            // Face toward the player while gaining awareness
+            if (_player != null)
+            {
+                Vector2 toPlayer = ((Vector2)_player.position - (Vector2)transform.position).normalized;
+                if (toPlayer.sqrMagnitude > 0.001f)
+                {
+                    _facingDirection = toPlayer;
+                }
+            }
+
+            // If we can no longer see the player and awareness has decayed, return to patrol
+            if (!canSee && _awarenessController != null && _awarenessController.CurrentAwareness <= 0f)
+            {
+                _currentState = GuardState.Patrolling;
+                UpdateFacingDirection();
+            }
+        }
+
+        private void OnAwarenessDetection()
+        {
+            // Called when awareness meter reaches threshold - start chasing!
+            if (_currentState != GuardState.Chasing)
+            {
+                StartChasing();
             }
         }
 
@@ -644,6 +709,7 @@ namespace Labyrinth.Enemy
             // Draw vision cone
             Gizmos.color = _currentState switch
             {
+                GuardState.GainingAwareness => new Color(1f, 0.8f, 0f), // Yellow-orange for gaining awareness
                 GuardState.Chasing => Color.red,
                 GuardState.Investigating => new Color(1f, 0.5f, 0f), // Orange
                 GuardState.SearchingAround => Color.magenta,
@@ -660,6 +726,14 @@ namespace Labyrinth.Enemy
 
             Gizmos.DrawLine(pos, pos + leftDir * visionRange);
             Gizmos.DrawLine(pos, pos + rightDir * visionRange);
+        }
+
+        private void OnDestroy()
+        {
+            if (_awarenessController != null)
+            {
+                _awarenessController.OnPlayerDetected -= OnAwarenessDetection;
+            }
         }
     }
 }

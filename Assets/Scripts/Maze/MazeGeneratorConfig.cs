@@ -40,6 +40,18 @@ namespace Labyrinth.Maze
         public int FixedSeed => fixedSeed;
 
         /// <summary>
+        /// Sets the maze configuration values programmatically.
+        /// Used by LevelDefinition to create configs on-the-fly.
+        /// </summary>
+        public void SetValues(int width, int height, int corridorWidth, float branchingFactor)
+        {
+            this.width = width;
+            this.height = height;
+            this.corridorWidth = corridorWidth;
+            this.branchingFactor = branchingFactor;
+        }
+
+        /// <summary>
         /// Gets a validated corridor width (clamped to valid range for maze size)
         /// </summary>
         public int GetValidatedCorridorWidth()
@@ -54,6 +66,17 @@ namespace Labyrinth.Maze
         public int? GetSeed()
         {
             return useFixedSeed ? fixedSeed : (int?)null;
+        }
+
+        /// <summary>
+        /// Sets the configuration values programmatically
+        /// </summary>
+        public void SetValues(int mazeWidth, int mazeHeight, int corridorW, float branching)
+        {
+            width = mazeWidth;
+            height = mazeHeight;
+            corridorWidth = corridorW;
+            branchingFactor = branching;
         }
 
         /// <summary>

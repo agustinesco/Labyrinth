@@ -387,6 +387,69 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: TX_MirrasMaze_PlayerAnimations_12
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dd320fd490c2741c89ae12aba628a33d
+      internalID: 1680924194
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TX_MirrasMaze_PlayerAnimations_13
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 0
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3d4d9f321c1cb4799abd43af97c0ccd2
+      internalID: 1866624274
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TX_MirrasMaze_PlayerAnimations_14
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 0
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c5b2d61f9669e4d258befbc0e0130183
+      internalID: 2082907194
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -402,6 +465,9 @@ TextureImporter:
       TX_MirrasMaze_PlayerAnimations_1: -62439039
       TX_MirrasMaze_PlayerAnimations_10: 1434675736
       TX_MirrasMaze_PlayerAnimations_11: 1231778629
+      TX_MirrasMaze_PlayerAnimations_12: 1680924194
+      TX_MirrasMaze_PlayerAnimations_13: 1866624274
+      TX_MirrasMaze_PlayerAnimations_14: 2082907194
       TX_MirrasMaze_PlayerAnimations_2: 98851670
       TX_MirrasMaze_PlayerAnimations_3: 561527376
       TX_MirrasMaze_PlayerAnimations_4: -436824976

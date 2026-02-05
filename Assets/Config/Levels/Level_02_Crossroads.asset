@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3d4e5f6789012345678abcdef012345, type: 3}
+  m_Name: Level_02_Crossroads
+  m_EditorClassIdentifier:
+  _levelId: level_02
+  _displayName: Crossroads
+  _description: The paths diverge here. Collect XP gems while avoiding the increased patrols.
+  _icon: {fileID: 0}
+  _mazeWidth: 31
+  _mazeHeight: 31
+  _corridorWidth: 3
+  _branchingFactor: 0.5
+  _keyItemPrefab: {fileID: 4001355966450260499, guid: 9e3b88b48313342baaad655a0ac9b45b, type: 3}
+  _xpItemPrefab: {fileID: 2907266021306952476, guid: dd29c5da5a79e4cb38e149650b013592, type: 3}
+  _xpItemCount: 25
+  _itemPool:
+  - prefab: {fileID: 206249537866367262, guid: b67a63683dc25499db625decf526be96, type: 3}
+    weight: 2
+    maxCount: 4
+  - prefab: {fileID: 6032026547202804775, guid: 89323ebca8380475e82f65d42d86c484, type: 3}
+    weight: 1
+    maxCount: 2
+  _generalItemCount: 10
+  _enemyPool:
+  - prefab: {fileID: 1492281182213793184, guid: 025a804bbd72748f9b4cfac74caa53e0, type: 3}
+    count: 2
+    spawnDelayOverride: -1
+  - prefab: {fileID: 1736158948511829220, guid: 0aab1c0dfaf7e44d6955b676c6803d21, type: 3}
+    count: 1
+    spawnDelayOverride: -1
+  _enemySpawnDelay: 45
+  _objectives:
+  - _type: 1
+    _description: Collect 5 XP gems
+    _targetCount: 5
+    _targetTime: 0
+    _itemType: XP
+    _persistProgress: 1
+  _unlockedByLevels:
+  - {fileID: 11400000, guid: 1a2b3c4d5e6f7890abcdef1234567890, type: 2}
+  _requireAllPrerequisites: 1
