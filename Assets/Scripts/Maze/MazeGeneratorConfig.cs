@@ -69,17 +69,6 @@ namespace Labyrinth.Maze
         }
 
         /// <summary>
-        /// Sets the configuration values programmatically
-        /// </summary>
-        public void SetValues(int mazeWidth, int mazeHeight, int corridorW, float branching)
-        {
-            width = mazeWidth;
-            height = mazeHeight;
-            corridorWidth = corridorW;
-            branchingFactor = branching;
-        }
-
-        /// <summary>
         /// Creates a MazeGenerator instance using this configuration
         /// </summary>
         public MazeGenerator CreateGenerator()
