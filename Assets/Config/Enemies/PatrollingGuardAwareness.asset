@@ -11,16 +11,16 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: eb97e66b7f85f4a8cb368df5fbb34e43, type: 3}
   m_Name: PatrollingGuardAwareness
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   instantDetection: 0
   detectionThreshold: 100
-  awarenessGainRate: 25
-  awarenessDecayRate: 15
+  awarenessGainRate: 95
+  awarenessDecayRate: 50
   stopWhileGaining: 1
   distanceScalingFactor: 0
   maxScalingDistance: 10
-  visionRange: 6
-  visionAngle: 60
+  visionRange: 7
+  visionAngle: 100
   requiresLineOfSight: 1
   wallLayer:
     serializedVersion: 2
