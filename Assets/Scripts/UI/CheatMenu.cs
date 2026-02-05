@@ -69,8 +69,9 @@ namespace Labyrinth.UI
                 // Check if it's properly configured
                 if (existingScrollRect.viewport != null && existingScrollRect.content != null)
                 {
-                    // Already properly set up, just ensure button heights
+                    // Already properly set up, just ensure button heights and text colors
                     SetButtonHeights(existingScrollRect.content);
+                    SetButtonTextColors(existingScrollRect.content);
                     return;
                 }
                 // Broken setup, remove it
@@ -115,7 +116,7 @@ namespace Labyrinth.UI
             contentLayout.spacing = 2;
             contentLayout.padding = new RectOffset(5, 5, 5, 5);
             contentLayout.childControlWidth = true;
-            contentLayout.childControlHeight = false;
+            contentLayout.childControlHeight = true;
             contentLayout.childForceExpandWidth = true;
             contentLayout.childForceExpandHeight = false;
 
@@ -154,6 +155,9 @@ namespace Labyrinth.UI
                 Destroy(existingLayout);
             }
 
+            // Ensure all button text is black
+            SetButtonTextColors(contentRect);
+
             // Add ScrollRect to panel
             ScrollRect scrollRect = menuPanel.AddComponent<ScrollRect>();
             scrollRect.content = contentRect;
@@ -177,6 +181,26 @@ namespace Labyrinth.UI
                 }
                 layoutElement.preferredHeight = buttonHeight;
                 layoutElement.minHeight = buttonHeight;
+            }
+        }
+
+        private void SetButtonTextColors(Transform parent)
+        {
+            if (parent == null) return;
+
+            foreach (Transform child in parent)
+            {
+                var tmpText = child.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+                if (tmpText != null)
+                {
+                    tmpText.color = Color.black;
+                    continue;
+                }
+                var legacyText = child.GetComponentInChildren<Text>();
+                if (legacyText != null)
+                {
+                    legacyText.color = Color.black;
+                }
             }
         }
 

@@ -34,6 +34,8 @@ namespace Labyrinth.Maze
         private TileBase floorTileCorner;
         [SerializeField, Tooltip("0 cardinal walls, 1 diagonal wall. Base rotation: bottom-left diagonal wall")]
         private TileBase floorTileDiagonalWall;
+        [SerializeField, Tooltip("0 cardinal walls, 1 diagonal wall. Base rotation: bottom-right diagonal wall")]
+        private TileBase floorTileDiagonalWallRight;
 
         [Header("Rule-Based Wall Tiles")]
         [SerializeField, Tooltip("Used for walls without any surrounding walls (isolated)")]
@@ -566,7 +568,7 @@ namespace Labyrinth.Maze
         {
             bool hasRuleTiles = floorTileCenter != null || floorTileOneWall != null ||
                                 floorTileWallAbove != null || floorTileCorner != null ||
-                                floorTileDiagonalWall != null;
+                                floorTileDiagonalWall != null || floorTileDiagonalWallRight != null;
 
             if (!hasRuleTiles)
             {
@@ -614,7 +616,7 @@ namespace Labyrinth.Maze
             }
 
             // 0 adjacent walls — check for diagonal walls
-            if (adjacentWallCount == 0 && floorTileDiagonalWall != null)
+            if (adjacentWallCount == 0 && (floorTileDiagonalWall != null || floorTileDiagonalWallRight != null))
             {
                 bool bottomLeftIsWall = IsWallAt(x - 1, y - 1);
                 bool topLeftIsWall = IsWallAt(x - 1, y + 1);
@@ -626,10 +628,11 @@ namespace Labyrinth.Maze
 
                 if (diagonalWallCount == 1)
                 {
-                    if (bottomLeftIsWall) return (floorTileDiagonalWall, 0f);
-                    if (topLeftIsWall) return (floorTileDiagonalWall, -90f);
-                    if (topRightIsWall) return (floorTileDiagonalWall, 180f);
-                    if (bottomRightIsWall) return (floorTileDiagonalWall, 90f);
+                    var diagTile = floorTileDiagonalWall ?? floorTileDiagonalWallRight;
+                    if (bottomLeftIsWall) return (diagTile, 0f);
+                    if (bottomRightIsWall) return (diagTile, 90f);
+                    if (topRightIsWall) return (diagTile, 180f);
+                    if (topLeftIsWall) return (diagTile, -90f);
                 }
             }
 

@@ -27,8 +27,9 @@ public static class SetupDecoTiles
     };
     static readonly int[] DecoIndices = { 21, 22, 23, 24, 25, 26 };
 
-    // Floor rule tiles (sprites 27, 29, 30, 32, 33)
+    // Floor rule tiles — diagonal wall tiles use sprite 29
     static readonly string[] FloorSpriteNames = {
+        "TX_MirrasMaze_AssetsAtlas_29",
         "TX_MirrasMaze_AssetsAtlas_27",
         "TX_MirrasMaze_AssetsAtlas_29",
         "TX_MirrasMaze_AssetsAtlas_30",
@@ -36,14 +37,16 @@ public static class SetupDecoTiles
         "TX_MirrasMaze_AssetsAtlas_33"
     };
     static readonly Rect[] FloorSpriteRects = {
+        new Rect(128, 32, 32, 32),
         new Rect(64, 64, 32, 32),
         new Rect(128, 32, 32, 32),
         new Rect(64, 32, 32, 32),
         new Rect(64, 0, 32, 32),
         new Rect(96, 0, 32, 32)
     };
-    // Maps to: floorTileWallAbove(27), floorTileDiagonalWall(29), floorTileCenter(30), floorTileOneWall(32), floorTileCorner(33)
+    // Maps to: floorTileDiagonalWallRight(29), floorTileWallAbove(27), floorTileDiagonalWall(29), floorTileCenter(30), floorTileOneWall(32), floorTileCorner(33)
     static readonly string[] FloorTileAssetNames = {
+        "FloorDiagonalWallRight",
         "FloorWallAbove",
         "FloorDiagonalWall",
         "FloorOpen",
@@ -51,6 +54,7 @@ public static class SetupDecoTiles
         "FloorCorner"
     };
     static readonly string[] FloorFieldNames = {
+        "floorTileDiagonalWallRight",
         "floorTileWallAbove",
         "floorTileDiagonalWall",
         "floorTileCenter",
