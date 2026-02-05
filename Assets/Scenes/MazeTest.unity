@@ -392,6 +392,8 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
 --- !u!1 &498331753
 GameObject:
   m_ObjectHideFlags: 0
@@ -1445,6 +1447,7 @@ RectTransform:
   - {fileID: 727689746}
   - {fileID: 1208970876}
   - {fileID: 498331754}
+  - {fileID: 8800000001}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1452,6 +1455,83 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1 &8800000000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8800000001}
+  - component: {fileID: 8800000002}
+  - component: {fileID: 8800000003}
+  m_Layer: 5
+  m_Name: LevelButtonContainer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &8800000001
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8800000000}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2061705313}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 20, y: 20}
+  m_SizeDelta: {x: 0, y: 40}
+  m_Pivot: {x: 0, y: 0}
+--- !u!114 &8800000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8800000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_Spacing: 10
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
+--- !u!114 &8800000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8800000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  m_HorizontalFit: 2
+  m_VerticalFit: 2
 --- !u!1 &2090477068
 GameObject:
   m_ObjectHideFlags: 0
@@ -1530,6 +1610,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8d3c30c05e6941489d36336fbc24c92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  levelDefinition: {fileID: 0}
+  availableLevels:
+  - {fileID: 11400000, guid: 1a2b3c4d5e6f7890abcdef1234567890, type: 2}
+  - {fileID: 11400000, guid: 2b3c4d5e6f7890abcdef1234567890ab, type: 2}
+  - {fileID: 11400000, guid: 3c4d5e6f7890abcdef1234567890abcd, type: 2}
+  - {fileID: 11400000, guid: 4d5e6f7890abcdef1234567890abcdef, type: 2}
+  - {fileID: 11400000, guid: 5e6f7890abcdef1234567890abcdef12, type: 2}
   mazeConfig: {fileID: 11400000, guid: 5b030a299887849a782814b09cae58be, type: 2}
   itemConfig: {fileID: 11400000, guid: 40da72a3cab2b48f3b92b407beb10e4f, type: 2}
   itemSpawner: {fileID: 3162266040154045563, guid: 7abeccabf823540e8b775871e5a2ad13, type: 3}
@@ -1541,6 +1628,9 @@ MonoBehaviour:
   regenerateItemsButton: {fileID: 727689747}
   regenerateEnemiesButton: {fileID: 1208970877}
   deleteEnemiesButton: {fileID: 498331755}
+  levelButtonContainer: {fileID: 8800000001}
+  levelButtonPrefab: {fileID: 100000, guid: 4c81489cfeba84a258ac3d211d9753c9, type: 3}
+  clearLevelButton: {fileID: 0}
   infoText: {fileID: 1683218186}
 --- !u!4 &2090477072
 Transform:
