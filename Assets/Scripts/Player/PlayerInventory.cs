@@ -153,6 +153,14 @@ namespace Labyrinth.Player
                     // Create a silk string trap between walls
                     ActivateSilkWorm(item.EffectValue, item.Duration);
                     break;
+
+                case ItemType.EagleEye:
+                    // Temporarily increase vision range
+                    if (FogOfWarManager.Instance != null)
+                    {
+                        FogOfWarManager.Instance.ApplyVisibilityBoost(item.EffectValue, item.Duration);
+                    }
+                    break;
             }
         }
 

@@ -1,5 +1,6 @@
 using UnityEngine;
 using Labyrinth.Player;
+using Labyrinth.Progression;
 
 namespace Labyrinth.Items
 {
@@ -84,6 +85,7 @@ namespace Labyrinth.Items
                         var invItem = CreateInventoryItem();
                         if (inventory.TryAddItem(invItem))
                         {
+                            ObjectiveTracker.Instance?.OnItemCollected(ItemType);
                             Destroy(gameObject);
                         }
                     }
@@ -93,6 +95,7 @@ namespace Labyrinth.Items
                 {
                     // Use immediately (like Key)
                     OnCollected(other.gameObject);
+                    ObjectiveTracker.Instance?.OnItemCollected(ItemType);
                     Destroy(gameObject);
                 }
             }

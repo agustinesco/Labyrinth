@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b216345adfbd44371a795b5d2c8e4373, type: 3}
   m_Name: EagleEye
   m_EditorClassIdentifier: 
+  isActive: 1
+  assetVersion: 1
   displayName: Eagle Eye
   description: +2 Vision Range
   icon: {fileID: 21300000, guid: ab30b80b4d3554465b79b0eb3e54f409, type: 3}

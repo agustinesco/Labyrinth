@@ -77,3 +77,6 @@ Thumbs.db
 
 
 build-ios/
+
+# Git worktrees
+.worktrees/
