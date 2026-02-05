@@ -4,6 +4,7 @@ using Labyrinth.Maze;
 using Labyrinth.Player;
 using Labyrinth.Core;
 using Labyrinth.Items;
+using Labyrinth.Progression;
 
 namespace Labyrinth.Enemy
 {
@@ -285,6 +286,9 @@ namespace Labyrinth.Enemy
             _currentState = GuardState.Chasing;
             _losePlayerTimer = losePlayerTime;
             _pathTimer = 0;
+
+            // Notify ObjectiveTracker that player was detected
+            ObjectiveTracker.Instance?.OnPlayerDetected();
         }
 
         private void StartInvestigating()

@@ -1,5 +1,6 @@
 using UnityEngine;
 using Labyrinth.Player;
+using Labyrinth.Progression;
 
 namespace Labyrinth.Enemy
 {
@@ -187,6 +188,7 @@ namespace Labyrinth.Enemy
                 if (_playerWasInRange && playerMovement > movementThreshold)
                 {
                     // Player moved while in range - attack!
+                    ObjectiveTracker.Instance?.OnPlayerDetected();
                     ThrowProjectile();
                     EnterState(MoleState.Attacking);
                 }
