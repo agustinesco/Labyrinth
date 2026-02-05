@@ -9388,8 +9388,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rayCount: 180
-  baseVisibilityRadius: 10
-  coneAngle: 120
+  baseVisibilityRadius: 4
+  coneAngle: 100
   ambientRadius: 3
   ambientRayCount: 60
   wallLayer:
@@ -9403,7 +9403,7 @@ MonoBehaviour:
   rayMarchStep: 0.5
   edgeSoftness: 2
   undiscoveredOpacity: 1
-  discoveredOpacity: 0.85
+  discoveredOpacity: 0.95
   visibleOpacity: 0
   fogColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!114 &2055192698
