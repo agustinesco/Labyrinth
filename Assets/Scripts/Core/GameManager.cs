@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using Labyrinth.Progression;
 
 namespace Labyrinth.Core
 {
@@ -17,6 +18,7 @@ namespace Labyrinth.Core
         public event System.Action OnEnemySpawn;
         public event System.Action OnGameWin;
         public event System.Action OnGameLose;
+        public event System.Action OnLevelEscape;
 
         private void Awake()
         {
@@ -60,7 +62,27 @@ namespace Labyrinth.Core
             if (CurrentState != GameState.Playing) return;
             CurrentState = GameState.Won;
             OnGameWin?.Invoke();
-            StartCoroutine(ReturnToMainMenuAfterDelay(1.5f));
+            StartCoroutine(ReturnToLevelSelectionAfterDelay(1.5f));
+        }
+
+        public void TriggerEscape()
+        {
+            if (CurrentState != GameState.Playing) return;
+
+            CurrentState = GameState.Won;
+            OnLevelEscape?.Invoke();
+            StartCoroutine(ReturnToLevelSelectionAfterDelay(1.5f));
+        }
+
+        private IEnumerator ReturnToLevelSelectionAfterDelay(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            ReturnToLevelSelection();
+        }
+
+        public void ReturnToLevelSelection()
+        {
+            LevelProgressionManager.Instance?.ReturnToLevelSelection();
         }
 
         private IEnumerator ReturnToMainMenuAfterDelay(float delay)
