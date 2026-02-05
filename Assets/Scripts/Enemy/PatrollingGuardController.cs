@@ -252,8 +252,13 @@ namespace Labyrinth.Enemy
 
         private void UpdateChasing()
         {
+            // Update awareness system (allows it to decay when player not visible)
+            bool canSee = CanSeePlayer();
+            float distanceToPlayer = _player != null ? Vector2.Distance(transform.position, _player.position) : 0f;
+            _awarenessController?.UpdateAwareness(canSee, distanceToPlayer);
+
             // Check if player is still visible
-            if (CanSeePlayer())
+            if (canSee)
             {
                 _losePlayerTimer = losePlayerTime;
                 // Track last seen position
@@ -293,8 +298,13 @@ namespace Labyrinth.Enemy
 
         private void UpdateReturning()
         {
+            // Update awareness system (allows it to decay)
+            bool canSee = CanSeePlayer();
+            float distanceToPlayer = _player != null ? Vector2.Distance(transform.position, _player.position) : 0f;
+            _awarenessController?.UpdateAwareness(canSee, distanceToPlayer);
+
             // Check for player detection while returning
-            if (CanSeePlayer())
+            if (canSee)
             {
                 StartChasing();
                 return;
@@ -361,8 +371,13 @@ namespace Labyrinth.Enemy
 
         private void UpdateInvestigating()
         {
+            // Update awareness system (allows it to decay)
+            bool canSee = CanSeePlayer();
+            float distanceToPlayer = _player != null ? Vector2.Distance(transform.position, _player.position) : 0f;
+            _awarenessController?.UpdateAwareness(canSee, distanceToPlayer);
+
             // Check for player detection while investigating
-            if (CanSeePlayer())
+            if (canSee)
             {
                 StartChasing();
                 return;
@@ -407,8 +422,13 @@ namespace Labyrinth.Enemy
 
         private void UpdateSearchingAround()
         {
+            // Update awareness system (allows it to decay)
+            bool canSee = CanSeePlayer();
+            float distanceToPlayer = _player != null ? Vector2.Distance(transform.position, _player.position) : 0f;
+            _awarenessController?.UpdateAwareness(canSee, distanceToPlayer);
+
             // Check for player detection while searching
-            if (CanSeePlayer())
+            if (canSee)
             {
                 StartChasing();
                 return;

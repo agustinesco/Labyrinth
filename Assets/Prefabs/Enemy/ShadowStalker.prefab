@@ -173,6 +173,8 @@ MonoBehaviour:
   attackCooldown: 2
   normalColor: {r: 0.2, g: 0.1, b: 0.3, a: 1}
   frozenColor: {r: 0.4, g: 0.2, b: 0.5, a: 1}
+  awarenessConfig: {fileID: 11400000, guid: e2ef846890ddf42fc99ae46dbfac36db, type: 2}
+  detectionRange: 10
 --- !u!114 &609690531654377629
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -152,6 +152,7 @@ MonoBehaviour:
   lookDirections: 4
   damage: 1
   attackCooldown: 2
+  awarenessConfig: {fileID: 11400000, guid: 045dc2d99e8e641819500f153ff979db, type: 2}
 --- !u!114 &2861797412222040077
 MonoBehaviour:
   m_ObjectHideFlags: 0
