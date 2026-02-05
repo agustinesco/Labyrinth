@@ -4,6 +4,7 @@ using Labyrinth.Maze;
 using Labyrinth.Player;
 using Labyrinth.Core;
 using Labyrinth.Visibility;
+using Labyrinth.Enemy.Awareness;
 
 namespace Labyrinth.Enemy
 {
@@ -34,7 +35,12 @@ namespace Labyrinth.Enemy
         [SerializeField] private Color normalColor = new Color(0.2f, 0.1f, 0.3f, 1f);
         [SerializeField] private Color frozenColor = new Color(0.4f, 0.2f, 0.5f, 1f);
 
+        [Header("Awareness")]
+        [SerializeField] private EnemyAwarenessConfig awarenessConfig;
+        [SerializeField] private float detectionRange = 10f;
+
         private Transform _player;
+        private EnemyAwarenessController _awarenessController;
         private MazeGrid _grid;
         private Pathfinding _pathfinding;
         private SpriteRenderer _spriteRenderer;
@@ -67,10 +73,35 @@ namespace Labyrinth.Enemy
             _pathfinding = new Pathfinding(grid);
             _spriteRenderer = GetComponent<SpriteRenderer>();
 
+            // Setup awareness controller
+            _awarenessController = GetComponent<EnemyAwarenessController>();
+            if (_awarenessController == null)
+            {
+                _awarenessController = gameObject.AddComponent<EnemyAwarenessController>();
+            }
+            if (awarenessConfig != null)
+            {
+                _awarenessController.SetConfig(awarenessConfig);
+            }
+            _awarenessController.OnPlayerDetected += OnAwarenessDetection;
+            _awarenessController.OnAwarenessLost += OnAwarenessLost;
+
             if (_spriteRenderer != null)
             {
                 _spriteRenderer.color = normalColor;
             }
+        }
+
+        private void OnAwarenessDetection()
+        {
+            // Shadow stalker has locked onto the player
+            Debug.Log("[ShadowStalker] Player detected - locked on!");
+        }
+
+        private void OnAwarenessLost()
+        {
+            // Shadow stalker lost track of the player
+            Debug.Log("[ShadowStalker] Lost awareness of player");
         }
 
         private void Update()
@@ -96,8 +127,11 @@ namespace Labyrinth.Enemy
 
             _attackTimer -= Time.deltaTime;
 
-            // Check if player can see us
+            // Check if player can see us (for freeze mechanic)
             bool isCurrentlyVisible = IsVisibleToPlayer();
+
+            // Update awareness - stalker detects player when within range
+            UpdateAwarenessState();
 
             // Handle freeze state transitions
             UpdateFreezeState(isCurrentlyVisible);
@@ -105,8 +139,8 @@ namespace Labyrinth.Enemy
             // Update visual feedback
             UpdateVisuals();
 
-            // Only move when not frozen
-            if (!_isFrozen)
+            // Only move when not frozen AND has detected player (awareness threshold reached)
+            if (!_isFrozen && HasDetectedPlayer())
             {
                 UpdateMovement();
                 UpdateCreepingSound();
@@ -122,6 +156,28 @@ namespace Labyrinth.Enemy
                 return false;
 
             return FogOfWarManager.Instance.IsPositionVisible(transform.position, visibilityThreshold);
+        }
+
+        private void UpdateAwarenessState()
+        {
+            if (_awarenessController == null || _player == null)
+                return;
+
+            // Check if player is within detection range
+            float distanceToPlayer = Vector2.Distance(transform.position, _player.position);
+            bool canDetectPlayer = distanceToPlayer <= detectionRange;
+
+            // Update awareness (stalker continues building awareness while tracking)
+            _awarenessController.UpdateAwareness(canDetectPlayer, distanceToPlayer);
+        }
+
+        private bool HasDetectedPlayer()
+        {
+            // If no awareness controller, fall back to old behavior (always follow)
+            if (_awarenessController == null)
+                return true;
+
+            return _awarenessController.HasDetectedPlayer;
         }
 
         private void UpdateFreezeState(bool isCurrentlyVisible)
@@ -303,6 +359,19 @@ namespace Labyrinth.Enemy
             {
                 Gizmos.color = new Color(1f, 0f, 1f, 0.1f);
                 Gizmos.DrawWireSphere(transform.position, creepingSoundRange);
+            }
+
+            // Draw detection range
+            Gizmos.color = HasDetectedPlayer() ? Color.red : Color.yellow;
+            Gizmos.DrawWireSphere(transform.position, detectionRange);
+        }
+
+        private void OnDestroy()
+        {
+            if (_awarenessController != null)
+            {
+                _awarenessController.OnPlayerDetected -= OnAwarenessDetection;
+                _awarenessController.OnAwarenessLost -= OnAwarenessLost;
             }
         }
     }

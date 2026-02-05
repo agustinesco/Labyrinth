@@ -36,6 +36,34 @@ namespace Labyrinth.Player
         public Vector2 FacingDirection => _facingDirection;
         public bool IsNearWall => _isNearWall;
 
+        /// <summary>
+        /// Multiplier affecting how fast enemies' awareness meters fill.
+        /// Lower values = stealthier (harder to detect).
+        /// Base value is 1.0, reduced by sneakiness bonuses from upgrades.
+        /// </summary>
+        public float SneakinessMultiplier
+        {
+            get
+            {
+                float baseMultiplier = 1f;
+
+                // Apply permanent sneakiness bonus from upgrades (reduces multiplier)
+                if (PlayerLevelSystem.Instance != null)
+                {
+                    baseMultiplier -= PlayerLevelSystem.Instance.SneakinessBonus;
+                }
+
+                // Apply Shadow Blend effect (reduces detection)
+                if (ShadowBlendManager.Instance != null && ShadowBlendManager.Instance.IsBlended)
+                {
+                    baseMultiplier *= ShadowBlendManager.Instance.DetectionRangeMultiplier;
+                }
+
+                // Clamp to minimum of 0.1 (can never be completely undetectable through awareness)
+                return Mathf.Max(0.1f, baseMultiplier);
+            }
+        }
+
         private void Awake()
         {
             _rb = GetComponent<Rigidbody2D>();

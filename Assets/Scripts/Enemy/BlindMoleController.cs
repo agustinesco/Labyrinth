@@ -1,6 +1,6 @@
 using UnityEngine;
 using Labyrinth.Player;
-using Labyrinth.Progression;
+using Labyrinth.Enemy.Awareness;
 
 namespace Labyrinth.Enemy
 {
@@ -41,7 +41,12 @@ namespace Labyrinth.Enemy
         [SerializeField] private Color emergingColor = new Color(0.8f, 0.6f, 0.2f, 0.8f);
         [SerializeField] private Color activeColor = new Color(0.6f, 0.4f, 0.3f, 1f);
 
+        [Header("Awareness")]
+        [SerializeField, Tooltip("Awareness config (should have instantDetection=true for moles)")]
+        private EnemyAwarenessConfig awarenessConfig;
+
         private MoleState _currentState = MoleState.Inactive;
+        private EnemyAwarenessController _awarenessController;
         private float _stateTimer;
         private Transform _player;
         private Vector3 _lastPlayerPosition;
@@ -55,6 +60,17 @@ namespace Labyrinth.Enemy
             _collider = GetComponent<Collider2D>();
             if (spriteRenderer == null)
                 spriteRenderer = GetComponent<SpriteRenderer>();
+
+            // Setup awareness controller (moles use instant detection)
+            _awarenessController = GetComponent<EnemyAwarenessController>();
+            if (_awarenessController == null)
+            {
+                _awarenessController = gameObject.AddComponent<EnemyAwarenessController>();
+            }
+            if (awarenessConfig != null)
+            {
+                _awarenessController.SetConfig(awarenessConfig);
+            }
 
             FindPlayer();
             EnterState(MoleState.Inactive);
@@ -188,7 +204,8 @@ namespace Labyrinth.Enemy
                 if (_playerWasInRange && playerMovement > movementThreshold)
                 {
                     // Player moved while in range - attack!
-                    ObjectiveTracker.Instance?.OnPlayerDetected();
+                    // Trigger awareness detection for consistency with awareness system
+                    _awarenessController?.ForceDetection();
                     ThrowProjectile();
                     EnterState(MoleState.Attacking);
                 }

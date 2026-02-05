@@ -16,6 +16,7 @@ namespace Labyrinth.Items
         EchoStone, // Sonar pulse that reveals enemy positions through walls
         Glider, // Allows player to pass through walls briefly
         Tunnel, // Creates a tunnel through a 1-tile thick wall
-        SilkWorm // Creates a silk string trap between two walls
+        SilkWorm, // Creates a silk string trap between two walls
+        EagleEye // Temporarily increases vision range
     }
 }

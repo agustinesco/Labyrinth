@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -19,6 +20,7 @@ namespace Labyrinth.UI
         [Header("Layout")]
         [SerializeField] private float _horizontalSpacing = 300f;
         [SerializeField] private float _verticalSpacing = 200f;
+        [SerializeField] private float _leftPadding = 150f;
 
         [Header("Detail Panel")]
         [SerializeField] private GameObject _detailPanel;
@@ -31,6 +33,7 @@ namespace Labyrinth.UI
 
         private Dictionary<string, LevelNodeUI> _nodes = new();
         private LevelDefinition _selectedLevel;
+        private LevelNodeUI _selectedNode;
 
         private void Start()
         {
@@ -108,7 +111,7 @@ namespace Labyrinth.UI
                 int siblingIndex = depthCurrentIndex[depth]++;
                 int totalSiblings = siblingCounts[depth];
 
-                float x = depth * _horizontalSpacing;
+                float x = _leftPadding + depth * _horizontalSpacing;
                 float y = (siblingIndex - (totalSiblings - 1) / 2f) * _verticalSpacing;
 
                 layout[level.LevelId] = new Vector2(x, y);
@@ -188,7 +191,7 @@ namespace Labyrinth.UI
             var manager = LevelProgressionManager.Instance;
             foreach (var kvp in _nodes)
             {
-                var level = manager.AllLevels.Find(l => l.LevelId == kvp.Key);
+                var level = manager.AllLevels.FirstOrDefault(l => l.LevelId == kvp.Key);
                 if (level != null)
                 {
                     bool unlocked = manager.IsLevelUnlocked(level);
@@ -200,7 +203,21 @@ namespace Labyrinth.UI
 
         private void OnNodeClicked(LevelDefinition level)
         {
+            // Deselect previous node
+            if (_selectedNode != null)
+            {
+                _selectedNode.SetSelected(false);
+            }
+
             _selectedLevel = level;
+
+            // Select new node
+            if (_nodes.TryGetValue(level.LevelId, out var node))
+            {
+                _selectedNode = node;
+                _selectedNode.SetSelected(true);
+            }
+
             ShowDetailPanel(level);
         }
 
@@ -240,6 +257,13 @@ namespace Labyrinth.UI
         {
             _detailPanel.SetActive(false);
             _selectedLevel = null;
+
+            // Deselect node
+            if (_selectedNode != null)
+            {
+                _selectedNode.SetSelected(false);
+                _selectedNode = null;
+            }
         }
 
         private void OnStartClicked()

@@ -16,6 +16,7 @@ namespace Labyrinth.UI
         [SerializeField] private GameObject _lockIcon;
         [SerializeField] private GameObject _completedIcon;
         [SerializeField] private TextMeshProUGUI _progressText;
+        [SerializeField] private Outline _selectionOutline;
 
         [Header("Colors")]
         [SerializeField] private Color _lockedColor = new Color(0.5f, 0.5f, 0.5f, 1f);
@@ -110,6 +111,14 @@ namespace Labyrinth.UI
         private void OnClick()
         {
             _onClicked?.Invoke(_level);
+        }
+
+        public void SetSelected(bool selected)
+        {
+            if (_selectionOutline != null)
+            {
+                _selectionOutline.enabled = selected;
+            }
         }
     }
 }

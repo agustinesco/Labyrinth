@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b216345adfbd44371a795b5d2c8e4373, type: 3}
   m_Name: WallHuggerUpgrade
   m_EditorClassIdentifier: 
+  isActive: 1
+  assetVersion: 1
   displayName: Wall Hugger
   description: Move 15% faster when near walls. Master the art of hugging shadows.
   icon: {fileID: 0}
