@@ -79,7 +79,7 @@ namespace Labyrinth.Enemy.Awareness
             SetAlpha(0f);
         }
 
-        private Sprite GetOrGetOrCreateSquareSprite()
+        private Sprite GetOrCreateSquareSprite()
         {
             // Return cached sprite if already created
             if (_cachedSprite != null)
