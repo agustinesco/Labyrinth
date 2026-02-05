@@ -11,18 +11,19 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3d4e5f6789012345678abcdef012345, type: 3}
   m_Name: Level_03B_ShadowPath
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   _levelId: level_03b
   _displayName: Shadow Path
-  _description: The moles sense vibration, not sight. Move carefully and gather light to illuminate your path.
+  _description: The moles sense vibration, not sight. Move carefully and gather light
+    to illuminate your path.
   _icon: {fileID: 0}
-  _mazeWidth: 35
-  _mazeHeight: 25
+  _mazeWidth: 60
+  _mazeHeight: 80
   _corridorWidth: 3
   _branchingFactor: 0.6
   _keyItemPrefab: {fileID: 4001355966450260499, guid: 9e3b88b48313342baaad655a0ac9b45b, type: 3}
   _xpItemPrefab: {fileID: 2907266021306952476, guid: dd29c5da5a79e4cb38e149650b013592, type: 3}
-  _xpItemCount: 25
+  _xpItemCount: 70
   _itemPool:
   - prefab: {fileID: 6032026547202804775, guid: 89323ebca8380475e82f65d42d86c484, type: 3}
     weight: 3
@@ -41,7 +42,7 @@ MonoBehaviour:
     _description: Escape without detection
     _targetCount: 0
     _targetTime: 0
-    _itemType:
+    _itemType: 
     _persistProgress: 0
   - _type: 1
     _description: Collect 3 light sources
