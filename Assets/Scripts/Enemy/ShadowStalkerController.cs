@@ -37,7 +37,6 @@ namespace Labyrinth.Enemy
 
         [Header("Awareness")]
         [SerializeField] private EnemyAwarenessConfig awarenessConfig;
-        [SerializeField] private float detectionRange = 10f;
 
         private Transform _player;
         private EnemyAwarenessController _awarenessController;
@@ -73,7 +72,7 @@ namespace Labyrinth.Enemy
             _pathfinding = new Pathfinding(grid);
             _spriteRenderer = GetComponent<SpriteRenderer>();
 
-            // Setup awareness controller
+            // Setup awareness controller (manual updates due to NoClip/Invisibility handling)
             _awarenessController = GetComponent<EnemyAwarenessController>();
             if (_awarenessController == null)
             {
@@ -83,6 +82,8 @@ namespace Labyrinth.Enemy
             {
                 _awarenessController.SetConfig(awarenessConfig);
             }
+            // Disable auto-update since we need special handling for NoClip/Invisibility
+            _awarenessController.SetAutoUpdate(false);
             _awarenessController.OnPlayerDetected += OnAwarenessDetection;
             _awarenessController.OnAwarenessLost += OnAwarenessLost;
 
@@ -163,9 +164,9 @@ namespace Labyrinth.Enemy
             if (_awarenessController == null || _player == null)
                 return;
 
-            // Check if player is within detection range
+            // Use the awareness controller's built-in vision detection
+            bool canDetectPlayer = _awarenessController.CanSeePlayer();
             float distanceToPlayer = Vector2.Distance(transform.position, _player.position);
-            bool canDetectPlayer = distanceToPlayer <= detectionRange;
 
             // Update awareness (stalker continues building awareness while tracking)
             _awarenessController.UpdateAwareness(canDetectPlayer, distanceToPlayer);
@@ -361,9 +362,12 @@ namespace Labyrinth.Enemy
                 Gizmos.DrawWireSphere(transform.position, creepingSoundRange);
             }
 
-            // Draw detection range
-            Gizmos.color = HasDetectedPlayer() ? Color.red : Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, detectionRange);
+            // Draw detection range (from config)
+            if (_awarenessController != null && _awarenessController.Config != null)
+            {
+                Gizmos.color = HasDetectedPlayer() ? Color.red : Color.yellow;
+                Gizmos.DrawWireSphere(transform.position, _awarenessController.Config.VisionRange);
+            }
         }
 
         private void OnDestroy()

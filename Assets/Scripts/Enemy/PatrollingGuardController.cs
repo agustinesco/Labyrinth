@@ -26,11 +26,6 @@ namespace Labyrinth.Enemy
         [SerializeField] private float chaseSpeed = 4f;
         [SerializeField] private float pauseDuration = 0.5f;
 
-        [Header("Vision Settings")]
-        [SerializeField] private float visionRange = 6f;
-        [SerializeField] private float visionConeAngle = 60f;
-        [SerializeField] private LayerMask wallLayer;
-
         [Header("Chase Settings")]
         [SerializeField] private float pathRecalculateInterval = 0.3f;
         [SerializeField] private float losePlayerTime = 3f;
@@ -101,7 +96,7 @@ namespace Labyrinth.Enemy
             _pathfinding = new Pathfinding(grid);
             _spriteRenderer = GetComponent<SpriteRenderer>();
 
-            // Setup awareness controller
+            // Setup awareness controller (with manual updates due to custom visibility checks)
             _awarenessController = GetComponent<EnemyAwarenessController>();
             if (_awarenessController == null)
             {
@@ -111,6 +106,8 @@ namespace Labyrinth.Enemy
             {
                 _awarenessController.SetConfig(awarenessConfig);
             }
+            // Disable auto-update since we have custom visibility logic (NoClip, Invisibility, ShadowBlend)
+            _awarenessController.SetAutoUpdate(false);
             _awarenessController.OnPlayerDetected += OnAwarenessDetection;
 
             // Start at first waypoint
@@ -230,6 +227,7 @@ namespace Labyrinth.Enemy
                 if (toPlayer.sqrMagnitude > 0.001f)
                 {
                     _facingDirection = toPlayer;
+                    _awarenessController?.SetFacingDirection(toPlayer);
                 }
             }
 
@@ -252,8 +250,13 @@ namespace Labyrinth.Enemy
 
         private void UpdateChasing()
         {
+            // Update awareness system (allows it to decay when player not visible)
+            bool canSee = CanSeePlayer();
+            float distanceToPlayer = _player != null ? Vector2.Distance(transform.position, _player.position) : 0f;
+            _awarenessController?.UpdateAwareness(canSee, distanceToPlayer);
+
             // Check if player is still visible
-            if (CanSeePlayer())
+            if (canSee)
             {
                 _losePlayerTimer = losePlayerTime;
                 // Track last seen position
@@ -293,8 +296,13 @@ namespace Labyrinth.Enemy
 
         private void UpdateReturning()
         {
+            // Update awareness system (allows it to decay)
+            bool canSee = CanSeePlayer();
+            float distanceToPlayer = _player != null ? Vector2.Distance(transform.position, _player.position) : 0f;
+            _awarenessController?.UpdateAwareness(canSee, distanceToPlayer);
+
             // Check for player detection while returning
-            if (CanSeePlayer())
+            if (canSee)
             {
                 StartChasing();
                 return;
@@ -361,8 +369,13 @@ namespace Labyrinth.Enemy
 
         private void UpdateInvestigating()
         {
+            // Update awareness system (allows it to decay)
+            bool canSee = CanSeePlayer();
+            float distanceToPlayer = _player != null ? Vector2.Distance(transform.position, _player.position) : 0f;
+            _awarenessController?.UpdateAwareness(canSee, distanceToPlayer);
+
             // Check for player detection while investigating
-            if (CanSeePlayer())
+            if (canSee)
             {
                 StartChasing();
                 return;
@@ -407,8 +420,13 @@ namespace Labyrinth.Enemy
 
         private void UpdateSearchingAround()
         {
+            // Update awareness system (allows it to decay)
+            bool canSee = CanSeePlayer();
+            float distanceToPlayer = _player != null ? Vector2.Distance(transform.position, _player.position) : 0f;
+            _awarenessController?.UpdateAwareness(canSee, distanceToPlayer);
+
             // Check for player detection while searching
-            if (CanSeePlayer())
+            if (canSee)
             {
                 StartChasing();
                 return;
@@ -426,6 +444,7 @@ namespace Labyrinth.Enemy
                 // Calculate new facing direction based on look direction index
                 float angle = (_currentLookDirection * 360f / lookDirections) * Mathf.Deg2Rad;
                 _facingDirection = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+                _awarenessController?.SetFacingDirection(_facingDirection);
             }
 
             // Done searching - return to patrol
@@ -440,11 +459,15 @@ namespace Labyrinth.Enemy
             _currentState = GuardState.Returning;
             _pathTimer = 0;
             RecalculatePathToNearestWaypoint();
+
+            // Reset awareness so the guard can re-detect the player
+            _awarenessController?.ResetAwareness();
         }
 
         private bool CanSeePlayer()
         {
             if (_player == null) return false;
+            if (_awarenessController == null || _awarenessController.Config == null) return false;
 
             // Can't see player in no-clip mode
             if (NoClipManager.Instance != null && NoClipManager.Instance.IsNoClipActive)
@@ -454,13 +477,14 @@ namespace Labyrinth.Enemy
             if (InvisibilityManager.Instance != null && InvisibilityManager.Instance.IsInvisible)
                 return false;
 
+            var config = _awarenessController.Config;
             Vector2 guardPos = transform.position;
             Vector2 playerPos = _player.position;
             Vector2 toPlayer = playerPos - guardPos;
             float distance = toPlayer.magnitude;
 
             // Apply Shadow Blend detection reduction
-            float effectiveVisionRange = visionRange;
+            float effectiveVisionRange = config.VisionRange;
             if (ShadowBlendManager.Instance != null)
             {
                 effectiveVisionRange *= ShadowBlendManager.Instance.DetectionRangeMultiplier;
@@ -470,17 +494,25 @@ namespace Labyrinth.Enemy
             if (distance > effectiveVisionRange)
                 return false;
 
-            // Check angle within cone
-            float angleToPlayer = Mathf.Atan2(toPlayer.y, toPlayer.x) * Mathf.Rad2Deg;
-            float facingAngle = Mathf.Atan2(_facingDirection.y, _facingDirection.x) * Mathf.Rad2Deg;
-            float angleDiff = Mathf.DeltaAngle(facingAngle, angleToPlayer);
+            // Check angle within cone (if not omnidirectional)
+            if (config.VisionAngle < 360f)
+            {
+                float angleToPlayer = Mathf.Atan2(toPlayer.y, toPlayer.x) * Mathf.Rad2Deg;
+                float facingAngle = Mathf.Atan2(_facingDirection.y, _facingDirection.x) * Mathf.Rad2Deg;
+                float angleDiff = Mathf.DeltaAngle(facingAngle, angleToPlayer);
 
-            if (Mathf.Abs(angleDiff) > visionConeAngle / 2f)
-                return false;
+                if (Mathf.Abs(angleDiff) > config.VisionAngle / 2f)
+                    return false;
+            }
 
             // Raycast to check wall obstruction
-            RaycastHit2D hit = Physics2D.Raycast(guardPos, toPlayer.normalized, distance, wallLayer);
-            return hit.collider == null;
+            if (config.RequiresLineOfSight)
+            {
+                RaycastHit2D hit = Physics2D.Raycast(guardPos, toPlayer.normalized, distance, config.WallLayer);
+                if (hit.collider != null) return false;
+            }
+
+            return true;
         }
 
         private void MoveToward(Vector2 target, float speed)
@@ -501,6 +533,7 @@ namespace Labyrinth.Enemy
             if (direction.sqrMagnitude > 0.001f)
             {
                 _facingDirection = direction;
+                _awarenessController?.SetFacingDirection(direction);
             }
         }
 
@@ -523,6 +556,7 @@ namespace Labyrinth.Enemy
             if (direction.sqrMagnitude > 0.001f)
             {
                 _facingDirection = direction;
+                _awarenessController?.SetFacingDirection(direction);
             }
 
             transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
@@ -615,6 +649,7 @@ namespace Labyrinth.Enemy
             if (direction.sqrMagnitude > 0.001f)
             {
                 _facingDirection = direction;
+                _awarenessController?.SetFacingDirection(direction);
             }
         }
 
@@ -706,26 +741,30 @@ namespace Labyrinth.Enemy
                 Gizmos.DrawWireSphere(_lastSeenPlayerPosition, 0.4f);
             }
 
-            // Draw vision cone
-            Gizmos.color = _currentState switch
+            // Draw vision cone (only if awareness controller with config exists)
+            if (_awarenessController != null && _awarenessController.Config != null)
             {
-                GuardState.GainingAwareness => new Color(1f, 0.8f, 0f), // Yellow-orange for gaining awareness
-                GuardState.Chasing => Color.red,
-                GuardState.Investigating => new Color(1f, 0.5f, 0f), // Orange
-                GuardState.SearchingAround => Color.magenta,
-                _ => Color.yellow
-            };
-            Vector3 pos = transform.position;
+                var config = _awarenessController.Config;
+                Gizmos.color = _currentState switch
+                {
+                    GuardState.GainingAwareness => new Color(1f, 0.8f, 0f), // Yellow-orange for gaining awareness
+                    GuardState.Chasing => Color.red,
+                    GuardState.Investigating => new Color(1f, 0.5f, 0f), // Orange
+                    GuardState.SearchingAround => Color.magenta,
+                    _ => Color.yellow
+                };
+                Vector3 pos = transform.position;
 
-            float facingAngle = Mathf.Atan2(_facingDirection.y, _facingDirection.x) * Mathf.Rad2Deg;
-            float leftAngle = (facingAngle + visionConeAngle / 2f) * Mathf.Deg2Rad;
-            float rightAngle = (facingAngle - visionConeAngle / 2f) * Mathf.Deg2Rad;
+                float facingAngle = Mathf.Atan2(_facingDirection.y, _facingDirection.x) * Mathf.Rad2Deg;
+                float leftAngle = (facingAngle + config.VisionAngle / 2f) * Mathf.Deg2Rad;
+                float rightAngle = (facingAngle - config.VisionAngle / 2f) * Mathf.Deg2Rad;
 
-            Vector3 leftDir = new Vector3(Mathf.Cos(leftAngle), Mathf.Sin(leftAngle), 0);
-            Vector3 rightDir = new Vector3(Mathf.Cos(rightAngle), Mathf.Sin(rightAngle), 0);
+                Vector3 leftDir = new Vector3(Mathf.Cos(leftAngle), Mathf.Sin(leftAngle), 0);
+                Vector3 rightDir = new Vector3(Mathf.Cos(rightAngle), Mathf.Sin(rightAngle), 0);
 
-            Gizmos.DrawLine(pos, pos + leftDir * visionRange);
-            Gizmos.DrawLine(pos, pos + rightDir * visionRange);
+                Gizmos.DrawLine(pos, pos + leftDir * config.VisionRange);
+                Gizmos.DrawLine(pos, pos + rightDir * config.VisionRange);
+            }
         }
 
         private void OnDestroy()
