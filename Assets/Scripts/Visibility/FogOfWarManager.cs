@@ -84,6 +84,12 @@ namespace Labyrinth.Visibility
         private Vector2 _lastFacingDir;
         private bool _forceUpdate;
 
+        // Dirty region tracking — only update the texture region that changed
+        private int _dirtyMinX, _dirtyMinY, _dirtyMaxX, _dirtyMaxY;
+        private int _prevDirtyMinX, _prevDirtyMinY, _prevDirtyMaxX, _prevDirtyMaxY;
+        private bool _hasDirtyRegion;
+        private bool _hasPrevDirtyRegion;
+
         private static readonly int VisibilityTexProperty = Shader.PropertyToID("_VisibilityTex");
         private static readonly int ExplorationTexProperty = Shader.PropertyToID("_ExplorationTex");
         private static readonly int MazeSizeProperty = Shader.PropertyToID("_MazeSize");
@@ -324,12 +330,35 @@ namespace Labyrinth.Visibility
                 for (int x = 0; x < _texWidth; x++)
                     for (int y = 0; y < _texHeight; y++)
                         _visibilityValues[x, y] = 1f;
+                _dirtyMinX = 0; _dirtyMinY = 0;
+                _dirtyMaxX = _texWidth - 1; _dirtyMaxY = _texHeight - 1;
+                _hasDirtyRegion = true;
                 ApplyVisibilityToTexture();
                 return;
             }
 
-            // Clear visibility values using fast array clear
-            System.Array.Clear(_visibilityValues, 0, _visibilityValues.Length);
+            // Save previous dirty bounds
+            _prevDirtyMinX = _dirtyMinX;
+            _prevDirtyMinY = _dirtyMinY;
+            _prevDirtyMaxX = _dirtyMaxX;
+            _prevDirtyMaxY = _dirtyMaxY;
+            _hasPrevDirtyRegion = _hasDirtyRegion;
+
+            // Reset current dirty bounds
+            _dirtyMinX = _texWidth;
+            _dirtyMinY = _texHeight;
+            _dirtyMaxX = 0;
+            _dirtyMaxY = 0;
+            _hasDirtyRegion = false;
+
+            // Clear only the previous dirty region instead of the full array
+            if (_hasPrevDirtyRegion)
+            {
+                for (int x = _prevDirtyMinX; x <= _prevDirtyMaxX; x++)
+                    for (int y = _prevDirtyMinY; y <= _prevDirtyMaxY; y++)
+                        _visibilityValues[x, y] = 0f;
+            }
+
             _explorationDirty = false;
 
             Vector2 playerPos = _player.position;
@@ -424,21 +453,6 @@ namespace Labyrinth.Visibility
                 MarkPointVisible(point.x, point.y, visibility);
             }
 
-            // Mark wall area when ray hits
-            if (maxDistance < maxRadius)
-            {
-                Vector2 endPoint = origin + direction * maxDistance;
-
-                // Simplified wall marking - just mark the hit point area
-                float wallStep = step * 2f;
-                for (float dx = -0.5f; dx <= 0.5f; dx += wallStep)
-                {
-                    for (float dy = -0.5f; dy <= 0.5f; dy += wallStep)
-                    {
-                        MarkPointVisible(endPoint.x + dx, endPoint.y + dy, 1f);
-                    }
-                }
-            }
         }
 
         private void MarkPointVisible(float worldX, float worldY, float visibility)
@@ -469,18 +483,55 @@ namespace Labyrinth.Visibility
                         _exploredValues[px, py] = visibility;
                         _explorationDirty = true;
                     }
+
+                    // Track dirty region bounds
+                    if (px < _dirtyMinX) _dirtyMinX = px;
+                    if (px > _dirtyMaxX) _dirtyMaxX = px;
+                    if (py < _dirtyMinY) _dirtyMinY = py;
+                    if (py > _dirtyMaxY) _dirtyMaxY = py;
+                    _hasDirtyRegion = true;
                 }
             }
         }
 
         private void ApplyVisibilityToTexture()
         {
-            // Batch update using pre-allocated arrays
-            int index = 0;
-            for (int y = 0; y < _texHeight; y++)
+            // Determine update region (union of previous + current dirty bounds)
+            int updateMinX, updateMinY, updateMaxX, updateMaxY;
+
+            if (_hasPrevDirtyRegion && _hasDirtyRegion)
             {
-                for (int x = 0; x < _texWidth; x++)
+                updateMinX = Mathf.Max(0, Mathf.Min(_prevDirtyMinX, _dirtyMinX));
+                updateMinY = Mathf.Max(0, Mathf.Min(_prevDirtyMinY, _dirtyMinY));
+                updateMaxX = Mathf.Min(_texWidth - 1, Mathf.Max(_prevDirtyMaxX, _dirtyMaxX));
+                updateMaxY = Mathf.Min(_texHeight - 1, Mathf.Max(_prevDirtyMaxY, _dirtyMaxY));
+            }
+            else if (_hasDirtyRegion)
+            {
+                updateMinX = Mathf.Max(0, _dirtyMinX);
+                updateMinY = Mathf.Max(0, _dirtyMinY);
+                updateMaxX = Mathf.Min(_texWidth - 1, _dirtyMaxX);
+                updateMaxY = Mathf.Min(_texHeight - 1, _dirtyMaxY);
+            }
+            else if (_hasPrevDirtyRegion)
+            {
+                updateMinX = Mathf.Max(0, _prevDirtyMinX);
+                updateMinY = Mathf.Max(0, _prevDirtyMinY);
+                updateMaxX = Mathf.Min(_texWidth - 1, _prevDirtyMaxX);
+                updateMaxY = Mathf.Min(_texHeight - 1, _prevDirtyMaxY);
+            }
+            else
+            {
+                return; // Nothing to update
+            }
+
+            // Only update pixels within the dirty region
+            for (int y = updateMinY; y <= updateMaxY; y++)
+            {
+                int rowStart = y * _texWidth;
+                for (int x = updateMinX; x <= updateMaxX; x++)
                 {
+                    int index = rowStart + x;
                     float vis = _visibilityValues[x, y];
                     _visibilityPixels[index] = new Color(vis, vis, vis, 1f);
 
@@ -489,13 +540,12 @@ namespace Labyrinth.Visibility
                         float explored = _exploredValues[x, y];
                         _explorationPixels[index] = new Color(explored, 0, 0, 1f);
                     }
-                    index++;
                 }
             }
 
-            // Single batched texture update
+            // Upload textures
             _visibilityTexture.SetPixels(_visibilityPixels);
-            _visibilityTexture.Apply(false); // false = don't recalculate mipmaps
+            _visibilityTexture.Apply(false);
 
             if (_explorationDirty)
             {
