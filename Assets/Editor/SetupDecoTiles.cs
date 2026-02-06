@@ -34,7 +34,8 @@ public static class SetupDecoTiles
         "TX_MirrasMaze_AssetsAtlas_29",
         "TX_MirrasMaze_AssetsAtlas_30",
         "TX_MirrasMaze_AssetsAtlas_32",
-        "TX_MirrasMaze_AssetsAtlas_33"
+        "TX_MirrasMaze_AssetsAtlas_33",
+        "TX_MirrasMaze_AssetsAtlas_28"
     };
     static readonly Rect[] FloorSpriteRects = {
         new Rect(128, 32, 32, 32),
@@ -42,16 +43,18 @@ public static class SetupDecoTiles
         new Rect(128, 32, 32, 32),
         new Rect(64, 32, 32, 32),
         new Rect(64, 0, 32, 32),
-        new Rect(96, 0, 32, 32)
+        new Rect(96, 0, 32, 32),
+        new Rect(96, 64, 32, 32)
     };
-    // Maps to: floorTileDiagonalWallRight(29), floorTileWallAbove(27), floorTileDiagonalWall(29), floorTileCenter(30), floorTileOneWall(32), floorTileCorner(33)
+    // Maps to: floorTileDiagonalWallRight(29), floorTileWallAbove(27), floorTileDiagonalWall(29), floorTileCenter(30), floorTileOneWall(32), floorTileCorner(33), floorTileCornerTop(28)
     static readonly string[] FloorTileAssetNames = {
         "FloorDiagonalWallRight",
         "FloorWallAbove",
         "FloorDiagonalWall",
         "FloorOpen",
         "FloorOneWall",
-        "FloorCorner"
+        "FloorCorner",
+        "FloorCornerTop"
     };
     static readonly string[] FloorFieldNames = {
         "floorTileDiagonalWallRight",
@@ -59,7 +62,8 @@ public static class SetupDecoTiles
         "floorTileDiagonalWall",
         "floorTileCenter",
         "floorTileOneWall",
-        "floorTileCorner"
+        "floorTileCorner",
+        "floorTileCornerTop"
     };
 
     [MenuItem("Tools/Setup Step1 - Ensure Sprites")]

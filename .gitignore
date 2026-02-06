@@ -80,3 +80,6 @@ build-ios/
 
 # Git worktrees
 .worktrees/
+
+# MCP config
+.mcp.json

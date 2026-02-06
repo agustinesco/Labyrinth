@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1213016006231665078}
   - component: {fileID: 5907271929852316242}
   - component: {fileID: 1290422902725745625}
+  - component: {fileID: 5206021159418046954}
   m_Layer: 0
   m_Name: CaltropsItem
   m_TagString: Untagged
@@ -83,7 +84,7 @@ SpriteRenderer:
   m_Size: {x: 1, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 0
+  m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!58 &5907271929852316242
@@ -142,3 +143,18 @@ MonoBehaviour:
   speedMultiplier: 0.4
   slowDuration: 4
   playerDamage: 1
+--- !u!114 &5206021159418046954
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8614723680530061999}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2abd8dae8e0844d480b2e054378d67c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  visibilityThreshold: 0.1
+  fadeInsteadOfHide: 0
+  fadeSpeed: 5
