@@ -13,6 +13,7 @@ namespace Labyrinth.UI
         [Header("References")]
         [SerializeField] private Transform _nodeContainer;
         [SerializeField] private Button _backButton;
+        [SerializeField] private Button _resetProgressButton;
         [SerializeField] private ScrollRect _scrollRect;
 
         [Header("Detail Panel")]
@@ -31,6 +32,7 @@ namespace Labyrinth.UI
         private void Start()
         {
             _backButton.onClick.AddListener(OnBackClicked);
+            _resetProgressButton.onClick.AddListener(OnResetProgressClicked);
             _startButton.onClick.AddListener(OnStartClicked);
             _closeDetailButton.onClick.AddListener(CloseDetailPanel);
 
@@ -41,6 +43,7 @@ namespace Labyrinth.UI
         private void OnDestroy()
         {
             _backButton.onClick.RemoveListener(OnBackClicked);
+            _resetProgressButton.onClick.RemoveListener(OnResetProgressClicked);
             _startButton.onClick.RemoveListener(OnStartClicked);
             _closeDetailButton.onClick.RemoveListener(CloseDetailPanel);
         }
@@ -149,6 +152,13 @@ namespace Labyrinth.UI
             {
                 LevelProgressionManager.Instance?.StartLevel(_selectedLevel);
             }
+        }
+
+        private void OnResetProgressClicked()
+        {
+            LevelProgressionManager.Instance?.ResetAllProgress();
+            CloseDetailPanel();
+            RefreshNodeStates();
         }
 
         public void OnBackClicked()
