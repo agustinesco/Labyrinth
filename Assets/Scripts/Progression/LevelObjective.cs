@@ -9,8 +9,7 @@ namespace Labyrinth.Progression
         CollectItems,
         SurviveTime,
         TimeLimit,
-        NoDetection,
-        DefeatEnemies
+        NoDetection
     }
 
     [Serializable]

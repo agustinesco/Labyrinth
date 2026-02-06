@@ -38,7 +38,7 @@ namespace Labyrinth.Progression
         SurviveTime,
         TimeLimit,
         NoDetection,
-        DefeatEnemies
+        // Note: No combat system exists - player cannot defeat enemies
     }
 
     [Serializable]

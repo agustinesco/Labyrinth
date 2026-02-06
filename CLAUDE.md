@@ -22,7 +22,7 @@
 
 ## Project Overview
 
-Labyrinth2 is a mobile 2D top-down procedural maze game built with Unity 2022.3. The player navigates a fog-of-war covered labyrinth, collects items, avoids enemies with A* pathfinding, and finds the key to escape.
+Labyrinth2 is a mobile 2D top-down procedural maze game built with Unity 2022.3. The player navigates a fog-of-war covered labyrinth, collects items, avoids enemies with A* pathfinding, and finds the key to escape. There is NO combat system - the player cannot attack or defeat enemies, only avoid them. Enemies deal contact damage but cannot be fought back.
 
 ## Build and Test Commands
 

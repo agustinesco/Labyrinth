@@ -14,7 +14,6 @@ namespace Labyrinth.Progression
         private List<ObjectiveState> _objectives = new();
         private float _elapsedTime;
         private bool _wasDetected;
-        private int _enemiesDefeated;
 
         public IReadOnlyList<ObjectiveState> Objectives => _objectives;
         public bool AllObjectivesCompleted => _objectives.TrueForAll(o => o.IsCompleted);
@@ -47,7 +46,6 @@ namespace Labyrinth.Progression
             _objectives.Clear();
             _elapsedTime = 0f;
             _wasDetected = false;
-            _enemiesDefeated = 0;
 
             for (int i = 0; i < level.Objectives.Count; i++)
             {
@@ -119,28 +117,6 @@ namespace Labyrinth.Progression
                         {
                             CompleteObjective(i);
                         }
-                    }
-                }
-            }
-        }
-
-        public void OnEnemyDefeated()
-        {
-            _enemiesDefeated++;
-
-            for (int i = 0; i < _objectives.Count; i++)
-            {
-                var state = _objectives[i];
-                if (state.IsCompleted) continue;
-
-                if (state.Definition.Type == ObjectiveType.DefeatEnemies)
-                {
-                    state.CurrentProgress = _enemiesDefeated;
-                    OnObjectiveProgress?.Invoke(i, state.CurrentProgress, state.Definition.TargetCount);
-
-                    if (state.CurrentProgress >= state.Definition.TargetCount)
-                    {
-                        CompleteObjective(i);
                     }
                 }
             }

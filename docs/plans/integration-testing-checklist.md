@@ -29,7 +29,6 @@
 
 ### 3. Objective Tracking - Persistent
 - [ ] CollectItems: Progress saves on escape
-- [ ] DefeatEnemies: Progress saves on escape
 - [ ] Progress resets to saved value on new run
 - [ ] Progress NOT saved on death
 

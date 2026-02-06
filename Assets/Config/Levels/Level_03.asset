@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _levelId: level_03a
   _displayName: The Hunt
-  _description: Long corridors and many guards. Strike back or run - but do it quickly.
+  _description: Long corridors and many guards. Stay hidden or run - but do it quickly.
   _icon: {fileID: 0}
   _mazeWidth: 80
   _mazeHeight: 80
@@ -34,12 +34,12 @@ MonoBehaviour:
     spawnDelayOverride: -1
   _enemySpawnDelay: 30
   _objectives:
-  - _type: 5
-    _description: Defeat 2 enemies
-    _targetCount: 2
+  - _type: 4
+    _description: Escape without being detected
+    _targetCount: 0
     _targetTime: 0
-    _itemType: 
-    _persistProgress: 1
+    _itemType:
+    _persistProgress: 0
   - _type: 3
     _description: Escape under 90 seconds
     _targetCount: 0

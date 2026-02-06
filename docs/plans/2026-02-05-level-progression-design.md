@@ -48,7 +48,7 @@ LevelDefinition
 
 ```
 LevelObjective
-├── type (enum: CollectItems, SurviveTime, TimeLimit, NoDetection, DefeatEnemies, etc.)
+├── type (enum: CollectItems, SurviveTime, TimeLimit, NoDetection)
 ├── parameters (int targetCount, float timeSeconds, string itemType, etc.)
 ├── persistProgress (bool) - if true, progress saves on escape
 └── description (string) - displayed to player
@@ -61,7 +61,6 @@ Objectives use a type enum with parameters:
 - `SurviveTime` - seconds
 - `TimeLimit` - seconds (fail if exceeded)
 - `NoDetection` - fail if spotted
-- `DefeatEnemies` - count
 
 Multiple objectives combine with AND logic.
 
@@ -277,7 +276,7 @@ UpgradeManager.Instance.ResetUpgrades();
 |-------|------|---------|------------|
 | **1: The First Steps** | Small (21x21), high branching | 1 Patrolling Guard (60s delay) | Reach the key (tutorial) |
 | **2: Crossroads** | Medium (31x31) | 2 Guards, 1 Mole | Collect 5 gems (persist: true) |
-| **3A: The Hunt** | Medium (31x31), long corridors | 4 Guards | Defeat 2 enemies (persist: true), Escape under 90s (persist: false) |
+| **3A: The Hunt** | Medium (31x31), long corridors | 4 Guards | No detection (persist: false), Escape under 90s (persist: false) |
 | **3B: Shadow Path** | Medium (35x25), wide | 3 Moles | No detection (persist: false), Collect 3 light sources (persist: true) |
 | **4: The Deep** | Large (41x41) | 3 Guards, 2 Moles | Collect 8 gems (persist: true), Survive 120s (persist: false) |
 
