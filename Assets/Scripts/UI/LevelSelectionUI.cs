@@ -59,7 +59,6 @@ namespace Labyrinth.UI
 
             _nodes.Clear();
 
-            // Find pre-placed nodes and initialize them
             foreach (var node in _nodeContainer.GetComponentsInChildren<LevelNodeUI>())
             {
                 if (node.Level != null)
