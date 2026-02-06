@@ -62,7 +62,7 @@ namespace Labyrinth.Maze
         [SerializeField] private DecorationTile[] decorationTiles;
         [SerializeField, Range(0f, 100f), Tooltip("Percentage of floor tiles that get a decoration")]
         private float decorationCoverage = 15f;
-        [SerializeField] private int decorationSortingOrder = 1;
+        [SerializeField] private int decorationSortingOrder = -1;
 
         [Header("Fallback Colors (if no tiles assigned)")]
         [SerializeField] private Color wallColor = new Color(0.35f, 0.24f, 0.12f);
@@ -412,8 +412,16 @@ namespace Labyrinth.Maze
                     floorObj.transform.localPosition = Vector3.zero;
 
                     floorTilemap = floorObj.AddComponent<Tilemap>();
-                    TilemapRenderer floorRenderer = floorObj.AddComponent<TilemapRenderer>();
-                    floorRenderer.sortingOrder = 0;
+                    floorObj.AddComponent<TilemapRenderer>();
+                }
+            }
+
+            // Always enforce floor sorting order
+            {
+                var floorRenderer = floorTilemap.GetComponent<TilemapRenderer>();
+                if (floorRenderer != null)
+                {
+                    floorRenderer.sortingOrder = -2;
                 }
             }
 
@@ -495,12 +503,12 @@ namespace Labyrinth.Maze
                     decoObj.transform.localPosition = Vector3.zero;
 
                     decorationTilemap = decoObj.AddComponent<Tilemap>();
-                    TilemapRenderer decoRenderer = decoObj.AddComponent<TilemapRenderer>();
-                    decoRenderer.sortingOrder = decorationSortingOrder;
+                    decoObj.AddComponent<TilemapRenderer>();
                     // No collider - purely decorative
                 }
             }
-            else
+
+            // Always enforce sorting order
             {
                 var decoRenderer = decorationTilemap.GetComponent<TilemapRenderer>();
                 if (decoRenderer != null)
