@@ -49,7 +49,7 @@ MonoBehaviour:
   _generalItemCount: 5
   _enemyPool:
   - prefab: {fileID: 1492281182213793184, guid: 025a804bbd72748f9b4cfac74caa53e0, type: 3}
-    count: 6
+    count: 2
     spawnDelayOverride: 60
   _enemySpawnDelay: 60
   _objectives:
