@@ -53,10 +53,12 @@ namespace Labyrinth.Player
                     baseMultiplier -= PlayerLevelSystem.Instance.SneakinessBonus;
                 }
 
-                // Apply Shadow Blend effect (reduces detection)
-                if (ShadowBlendManager.Instance != null && ShadowBlendManager.Instance.IsBlended)
+                // Apply Shadow Blend effect (slows awareness gain)
+                if (PlayerLevelSystem.Instance != null && PlayerLevelSystem.Instance.ShadowBlendLevel > 0)
                 {
-                    baseMultiplier *= ShadowBlendManager.Instance.DetectionRangeMultiplier;
+                    int level = PlayerLevelSystem.Instance.ShadowBlendLevel;
+                    float reduction = Mathf.Min(level * 0.25f, 0.75f);
+                    baseMultiplier *= (1f - reduction);
                 }
 
                 // Clamp to minimum of 0.1 (can never be completely undetectable through awareness)

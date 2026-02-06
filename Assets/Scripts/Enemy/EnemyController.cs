@@ -52,15 +52,6 @@ namespace Labyrinth.Enemy
             if (Player.InvisibilityManager.Instance != null && Player.InvisibilityManager.Instance.IsInvisible)
                 return;
 
-            // Shadow Blend reduces detection range
-            if (Player.ShadowBlendManager.Instance != null && Player.ShadowBlendManager.Instance.IsBlended)
-            {
-                float effectiveRange = detectionRange * Player.ShadowBlendManager.Instance.DetectionRangeMultiplier;
-                float distanceToPlayer = Vector2.Distance(transform.position, _target.position);
-                if (distanceToPlayer > effectiveRange)
-                    return; // Can't detect blended player at this distance
-            }
-
             _chaseTimer += Time.deltaTime;
             _attackTimer -= Time.deltaTime;
 
