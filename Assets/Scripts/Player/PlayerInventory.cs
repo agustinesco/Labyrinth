@@ -58,6 +58,18 @@ namespace Labyrinth.Player
         }
 
         /// <summary>
+        /// Swaps the item at the given index with the first item.
+        /// </summary>
+        public void SwapWithFirst(int index)
+        {
+            if (index <= 0 || index >= _items.Count)
+                return;
+
+            (_items[0], _items[index]) = (_items[index], _items[0]);
+            OnInventoryChanged?.Invoke();
+        }
+
+        /// <summary>
         /// Uses the item at the specified index.
         /// </summary>
         public void UseItemAt(int index)

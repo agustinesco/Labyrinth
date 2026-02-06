@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.Events;
 using Labyrinth.Player;
 using Labyrinth.Leveling;
 
@@ -54,6 +55,29 @@ namespace Labyrinth.UI
             }
 
             _initialized = true;
+
+            // Add tap handlers to queue slots for swapping
+            AddSlotTapHandler(queueSlot1Background, 1);
+            AddSlotTapHandler(queueSlot2Background, 2);
+            AddSlotTapHandler(queueSlot3Background, 3);
+        }
+
+        private void AddSlotTapHandler(Image slotBackground, int itemIndex)
+        {
+            if (slotBackground == null) return;
+
+            var trigger = slotBackground.gameObject.AddComponent<EventTrigger>();
+            var entry = new EventTrigger.Entry { eventID = EventTriggerType.PointerDown };
+            entry.callback.AddListener((_) => OnQueueSlotTapped(itemIndex));
+            trigger.triggers.Add(entry);
+        }
+
+        private void OnQueueSlotTapped(int itemIndex)
+        {
+            if (_inventory != null && _inventory.ItemCount > itemIndex)
+            {
+                _inventory.SwapWithFirst(itemIndex);
+            }
         }
 
         private void FindInventory()
