@@ -1,10 +1,12 @@
 using UnityEngine;
 using Labyrinth.Player;
 using Labyrinth.Progression;
+using Labyrinth.Visibility;
 
 namespace Labyrinth.Items
 {
     [RequireComponent(typeof(Collider2D))]
+    [RequireComponent(typeof(VisibilityAwareEntity))]
     public abstract class BaseItem : MonoBehaviour
     {
         [Header("Animation")]

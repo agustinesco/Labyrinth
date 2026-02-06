@@ -5,6 +5,7 @@ Shader "Labyrinth/FogOfWar"
         _VisibilityTex ("Visibility Map", 2D) = "black" {}
         _ExplorationTex ("Exploration Map", 2D) = "black" {}
         _MazeSize ("Maze Size", Vector) = (25, 25, 0, 0)
+        _TexelSize ("Texel Size", Vector) = (0.006, 0.006, 0, 0)
         _UnexploredOpacity ("Undiscovered Opacity", Range(0, 1)) = 1.0
         _ExploredOpacity ("Discovered Opacity", Range(0, 1)) = 0.7
         _VisibleOpacity ("Visible Opacity", Range(0, 1)) = 0.0
@@ -43,6 +44,7 @@ Shader "Labyrinth/FogOfWar"
             sampler2D _VisibilityTex;
             sampler2D _ExplorationTex;
             float4 _MazeSize;
+            float4 _TexelSize;
             float _UnexploredOpacity;
             float _ExploredOpacity;
             float _VisibleOpacity;
@@ -58,14 +60,42 @@ Shader "Labyrinth/FogOfWar"
                 return o;
             }
 
+            // Gaussian-weighted 13-tap blur sample
+            // Samples center + 4 cardinal (1 texel away) + 4 cardinal (2 texels away) + 4 diagonal (1 texel away)
+            float SampleBlurred(sampler2D tex, float2 uv, float2 ts)
+            {
+                float sum = tex2D(tex, uv).r * 4.0;
+
+                // Cardinal neighbors (1 texel)
+                sum += tex2D(tex, uv + float2( ts.x, 0)).r * 2.0;
+                sum += tex2D(tex, uv + float2(-ts.x, 0)).r * 2.0;
+                sum += tex2D(tex, uv + float2(0,  ts.y)).r * 2.0;
+                sum += tex2D(tex, uv + float2(0, -ts.y)).r * 2.0;
+
+                // Diagonal neighbors (1 texel)
+                sum += tex2D(tex, uv + float2( ts.x,  ts.y)).r;
+                sum += tex2D(tex, uv + float2(-ts.x,  ts.y)).r;
+                sum += tex2D(tex, uv + float2( ts.x, -ts.y)).r;
+                sum += tex2D(tex, uv + float2(-ts.x, -ts.y)).r;
+
+                // Cardinal neighbors (2 texels) for wider spread
+                sum += tex2D(tex, uv + float2( ts.x * 2.0, 0)).r;
+                sum += tex2D(tex, uv + float2(-ts.x * 2.0, 0)).r;
+                sum += tex2D(tex, uv + float2(0,  ts.y * 2.0)).r;
+                sum += tex2D(tex, uv + float2(0, -ts.y * 2.0)).r;
+
+                return sum / 20.0;
+            }
+
             fixed4 frag (v2f i) : SV_Target
             {
                 // Convert world position to UV for texture sampling
                 float2 uv = i.worldPos.xy / _MazeSize.xy;
+                float2 ts = _TexelSize.xy;
 
-                // Sample textures
-                float visible = tex2D(_VisibilityTex, uv).r;
-                float explored = tex2D(_ExplorationTex, uv).r;
+                // Sample with GPU blur for smooth edges
+                float visible = SampleBlurred(_VisibilityTex, uv, ts);
+                float explored = SampleBlurred(_ExplorationTex, uv, ts);
 
                 // Soft transitions for smoother edges
                 float isVisible = smoothstep(0.0, _EdgeSoftness + 0.1, visible);

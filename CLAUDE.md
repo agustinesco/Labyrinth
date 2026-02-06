@@ -1,5 +1,19 @@
 # Claude Code Project Instructions
 
+## ⚠️ Unity Rules
+
+- **NEVER edit Unity prefab (.prefab), scene (.unity), or asset (.asset) YAML files directly.** These are serialized binary-like files managed by Unity's editor. Always use MCP tools (manage_scene, manage_components, find_gameobjects) to modify Unity objects, or generate C# editor scripts that make changes at runtime/edit-time.
+
+### MCP Instance Verification
+
+- Before performing any Unity MCP operation, verify the active Unity instance by calling `mcp__unityMCP__read_console` or checking the project name.
+- If multiple Unity instances are running, confirm with the user which instance/project to target before proceeding.
+
+### Error Recovery
+
+- When a Unity MCP tool call fails or returns unexpected results, do NOT retry the same approach more than twice.
+- Instead, stop and suggest: (1) restarting the MCP connection, (2) checking which Unity instance is active, or (3) an alternative approach like generating a C# editor script.
+
 ## Git Rules
 
 - **NEVER push directly to main branch** - Always create feature branches and use pull requests
@@ -8,7 +22,7 @@
 
 ## Project Overview
 
-Labyrinth2 is a mobile 2D top-down procedural maze game built with Unity 2022.3. The player navigates a fog-of-war covered labyrinth, collects items, avoids enemies with A* pathfinding, and finds the key to escape.
+Labyrinth2 is a mobile 2D top-down procedural maze game built with Unity 2022.3. The player navigates a fog-of-war covered labyrinth, collects items, avoids enemies with A* pathfinding, and finds the key to escape. There is NO combat system - the player cannot attack or defeat enemies, only avoid them. Enemies deal contact damage but cannot be fought back.
 
 ## Build and Test Commands
 

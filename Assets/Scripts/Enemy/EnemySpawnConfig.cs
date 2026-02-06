@@ -68,5 +68,29 @@ namespace Labyrinth.Enemy
 
         public float StartExclusionRadius => startExclusionRadius;
         public float ExitExclusionRadius => exitExclusionRadius;
+
+        /// <summary>
+        /// Sets the enemy spawn configuration values programmatically.
+        /// Used by LevelDefinition to create configs on-the-fly.
+        /// </summary>
+        public void SetValues(
+            GameObject guardPrefab, int maxGuards, float guardSpawnChance,
+            GameObject molePrefab, int maxMoles, float moleSpawnChance,
+            GameObject stalkerPrefab, int maxStalkers, float stalkerSpawnChance,
+            int minCorridor = 15, float startExclusion = 8f, float exitExclusion = 5f)
+        {
+            patrollingGuardPrefab = guardPrefab;
+            maxPatrollingGuards = maxGuards;
+            patrollingGuardSpawnChance = guardSpawnChance;
+            blindMolePrefab = molePrefab;
+            maxBlindMoles = maxMoles;
+            blindMoleSpawnChance = moleSpawnChance;
+            shadowStalkerPrefab = stalkerPrefab;
+            maxShadowStalkers = maxStalkers;
+            shadowStalkerSpawnChance = stalkerSpawnChance;
+            minCorridorLength = minCorridor;
+            startExclusionRadius = startExclusion;
+            exitExclusionRadius = exitExclusion;
+        }
     }
 }

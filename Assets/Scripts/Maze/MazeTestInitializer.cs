@@ -135,10 +135,19 @@ namespace Labyrinth.Maze
                 }
             }
 
-            // Setup enemy spawner config (works with both LevelDefinition and manual config)
-            if (enemySpawnerManager != null && enemyConfig != null)
+            // Setup enemy spawner config
+            if (enemySpawnerManager != null)
             {
-                enemySpawnerManager.SpawnConfig = enemyConfig;
+                if (levelDefinition != null)
+                {
+                    var levelEnemyConfig = levelDefinition.CreateEnemySpawnConfig();
+                    enemySpawnerManager.SpawnConfig = levelEnemyConfig;
+                    Debug.Log($"[MazeTestInitializer] Using level enemy config - Guards: {levelEnemyConfig.MaxPatrollingGuards}, Moles: {levelEnemyConfig.MaxBlindMoles}, Stalkers: {levelEnemyConfig.MaxShadowStalkers}");
+                }
+                else if (enemyConfig != null)
+                {
+                    enemySpawnerManager.SpawnConfig = enemyConfig;
+                }
             }
         }
 
@@ -185,7 +194,7 @@ namespace Labyrinth.Maze
 
         private void SpawnItems()
         {
-            if (itemSpawner != null && itemConfig != null)
+            if (itemSpawner != null && itemSpawner.SpawnConfig != null)
             {
                 itemSpawner.SpawnItems(Grid, _startPos, _exitPos);
             }
@@ -193,7 +202,7 @@ namespace Labyrinth.Maze
 
         private void SpawnEnemies()
         {
-            if (enemySpawnerManager != null && enemyConfig != null)
+            if (enemySpawnerManager != null && enemySpawnerManager.SpawnConfig != null)
             {
                 enemySpawnerManager.SpawnEnemies(Grid, _startPos, _exitPos, null);
             }
@@ -212,7 +221,7 @@ namespace Labyrinth.Maze
                 return;
             }
 
-            if (itemConfig == null)
+            if (itemSpawner.SpawnConfig == null)
             {
                 Debug.LogWarning("[MazeTestInitializer] No ItemSpawnConfig assigned!");
                 return;
@@ -237,7 +246,7 @@ namespace Labyrinth.Maze
                 return;
             }
 
-            if (enemySpawnerManager != null && enemyConfig != null)
+            if (enemySpawnerManager != null && enemySpawnerManager.SpawnConfig != null)
             {
                 enemySpawnerManager.RegenerateEnemies(Grid, _startPos, _exitPos, null);
                 Debug.Log("[MazeTestInitializer] Enemies regenerated");
@@ -294,7 +303,12 @@ namespace Labyrinth.Maze
                 {
                     itemInfo = "";
                 }
-                string enemyInfo = enemyConfig != null ? $" | Guards: {enemyConfig.MaxPatrollingGuards} | Moles: {enemyConfig.MaxBlindMoles}" : "";
+                string enemyInfo = "";
+                if (enemySpawnerManager != null && enemySpawnerManager.SpawnConfig != null)
+                {
+                    var ec = enemySpawnerManager.SpawnConfig;
+                    enemyInfo = $" | Guards: {ec.MaxPatrollingGuards} | Moles: {ec.MaxBlindMoles} | Stalkers: {ec.MaxShadowStalkers}";
+                }
                 infoText.text = $"{levelInfo}Size: {_activeMazeConfig.Width}x{_activeMazeConfig.Height} | Corridor: {_activeMazeConfig.GetValidatedCorridorWidth()} | Seed: {_currentSeed}{itemInfo}{enemyInfo}";
             }
         }

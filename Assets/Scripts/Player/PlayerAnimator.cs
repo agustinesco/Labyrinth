@@ -25,6 +25,8 @@ namespace Labyrinth.Player
         private static readonly int WalkUpHash = Animator.StringToHash("WalkUp");
         private static readonly int WalkDownHash = Animator.StringToHash("WalkDown");
         private static readonly int WalkHorizontalHash = Animator.StringToHash("WalkHorizontal");
+        private static readonly int WalkDiagonalUpHash = Animator.StringToHash("PlayerMovingDiagonallyUp");
+        private static readonly int WalkDiagonalDownHash = Animator.StringToHash("PlayerMovingDiagonallyDown");
 
         // Parameter hashes to disable automatic transitions
         private static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
@@ -107,14 +109,30 @@ namespace Labyrinth.Player
             if (_currentAnimHash != animHash)
             {
                 _currentAnimHash = animHash;
-                // Use CrossFade for smoother transitions, or Play without resetting time
-                _animator.CrossFade(animHash, 0f, 0);
+                _animator.Play(animHash, 0);
             }
         }
 
         private void PlayWalkAnimation(Vector2 facingDir)
         {
-            if (Mathf.Abs(facingDir.y) > Mathf.Abs(facingDir.x))
+            float absX = Mathf.Abs(facingDir.x);
+            float absY = Mathf.Abs(facingDir.y);
+
+            // Diagonal movement: both axes have significant input
+            bool isDiagonal = absX > 0.3f && absY > 0.3f;
+
+            if (isDiagonal)
+            {
+                if (facingDir.y > 0)
+                {
+                    PlayAnimation(WalkDiagonalUpHash);
+                }
+                else
+                {
+                    PlayAnimation(WalkDiagonalDownHash);
+                }
+            }
+            else if (absY > absX)
             {
                 if (facingDir.y > 0)
                 {

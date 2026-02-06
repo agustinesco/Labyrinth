@@ -32,6 +32,8 @@ namespace Labyrinth.Maze
         private TileBase floorTileWallAbove;
         [SerializeField, Tooltip("2 adjacent continuous walls (corner). Base rotation: wall bottom+right")]
         private TileBase floorTileCorner;
+        [SerializeField, Tooltip("2 adjacent walls: top+left or top+right. Base: top+left, flipped for top+right")]
+        private TileBase floorTileCornerTop;
         [SerializeField, Tooltip("0 cardinal walls, 1 diagonal wall. Base rotation: bottom-left diagonal wall")]
         private TileBase floorTileDiagonalWall;
         [SerializeField, Tooltip("0 cardinal walls, 1 diagonal wall. Base rotation: bottom-right diagonal wall")]
@@ -121,13 +123,14 @@ namespace Labyrinth.Maze
                     else
                     {
                         // Pick floor tile based on adjacent walls (rule-based) or random
-                        var (floorTile, rotation) = GetFloorTileForPosition(x, y);
+                        var (floorTile, rotation, flipX) = GetFloorTileForPosition(x, y);
                         floorTilemap.SetTile(tilePosition, floorTile);
 
-                        // Apply rotation if needed
-                        if (rotation != 0f)
+                        // Apply rotation and/or flip if needed
+                        if (rotation != 0f || flipX)
                         {
-                            var matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.Euler(0, 0, rotation), Vector3.one);
+                            Vector3 scale = flipX ? new Vector3(-1, 1, 1) : Vector3.one;
+                            var matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.Euler(0, 0, rotation), scale);
                             floorTilemap.SetTransformMatrix(tilePosition, matrix);
                         }
 
@@ -572,15 +575,16 @@ namespace Labyrinth.Maze
         /// - 1 wall on bottom/left/right → floorTileOneWall (base: wall below)
         /// - 0 walls → floorTileCenter
         /// </summary>
-        private (TileBase tile, float rotation) GetFloorTileForPosition(int x, int y)
+        private (TileBase tile, float rotation, bool flipX) GetFloorTileForPosition(int x, int y)
         {
             bool hasRuleTiles = floorTileCenter != null || floorTileOneWall != null ||
                                 floorTileWallAbove != null || floorTileCorner != null ||
+                                floorTileCornerTop != null ||
                                 floorTileDiagonalWall != null || floorTileDiagonalWallRight != null;
 
             if (!hasRuleTiles)
             {
-                return (GetRandomTile(floorTiles, _fallbackFloorTile), 0f);
+                return (GetRandomTile(floorTiles, _fallbackFloorTile), 0f, false);
             }
 
             bool leftIsWall = IsWallAt(x - 1, y);
@@ -592,16 +596,20 @@ namespace Labyrinth.Maze
                                     (topIsWall ? 1 : 0) + (bottomIsWall ? 1 : 0);
 
             // 2 adjacent continuous walls (corner) — base rotation: bottom+right are walls
-            if (adjacentWallCount == 2 && floorTileCorner != null)
+            if (adjacentWallCount == 2 && (floorTileCorner != null || floorTileCornerTop != null))
             {
                 if (bottomIsWall && rightIsWall)
-                    return (floorTileCorner, 0f);
-                if (rightIsWall && topIsWall)
-                    return (floorTileCorner, 90f);
+                    return (floorTileCorner, 0f, false);
                 if (topIsWall && leftIsWall)
-                    return (floorTileCorner, 180f);
+                    return (floorTileCornerTop != null)
+                        ? (floorTileCornerTop, 0f, true)
+                        : (floorTileCorner, 180f, false);
+                if (rightIsWall && topIsWall)
+                    return (floorTileCornerTop != null)
+                        ? (floorTileCornerTop, 0f, false)
+                        : (floorTileCorner, 90f, false);
                 if (leftIsWall && bottomIsWall)
-                    return (floorTileCorner, -90f);
+                    return (floorTileCorner, -90f, false);
             }
 
             // 1 adjacent wall
@@ -609,17 +617,17 @@ namespace Labyrinth.Maze
             {
                 // Wall on top — special tile
                 if (topIsWall && floorTileWallAbove != null)
-                    return (floorTileWallAbove, 0f);
+                    return (floorTileWallAbove, 0f, false);
 
                 // Wall on bottom/left/right — base rotation: wall below
                 if (floorTileOneWall != null)
                 {
                     if (bottomIsWall)
-                        return (floorTileOneWall, 0f);
+                        return (floorTileOneWall, 0f, false);
                     if (rightIsWall)
-                        return (floorTileOneWall, 90f);
+                        return (floorTileOneWall, 90f, false);
                     if (leftIsWall)
-                        return (floorTileOneWall, -90f);
+                        return (floorTileOneWall, -90f, false);
                 }
             }
 
@@ -637,15 +645,15 @@ namespace Labyrinth.Maze
                 if (diagonalWallCount == 1)
                 {
                     var diagTile = floorTileDiagonalWall ?? floorTileDiagonalWallRight;
-                    if (bottomLeftIsWall) return (diagTile, 0f);
-                    if (bottomRightIsWall) return (diagTile, 90f);
-                    if (topRightIsWall) return (diagTile, 180f);
-                    if (topLeftIsWall) return (diagTile, -90f);
+                    if (bottomLeftIsWall) return (diagTile, 0f, false);
+                    if (bottomRightIsWall) return (diagTile, 90f, false);
+                    if (topRightIsWall) return (diagTile, 180f, false);
+                    if (topLeftIsWall) return (diagTile, -90f, false);
                 }
             }
 
             // 0 adjacent walls — open floor
-            return (floorTileCenter ?? GetRandomTile(floorTiles, _fallbackFloorTile), 0f);
+            return (floorTileCenter ?? GetRandomTile(floorTiles, _fallbackFloorTile), 0f, false);
         }
 
         /// <summary>

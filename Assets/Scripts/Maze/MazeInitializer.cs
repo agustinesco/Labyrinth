@@ -47,6 +47,13 @@ namespace Labyrinth.Maze
                 var level = levelManager.CurrentLevel;
                 effectiveConfig = level.CreateMazeConfig();
 
+                if (itemSpawner != null)
+                {
+                    itemSpawner.SpawnConfig = level.CreateItemSpawnConfig();
+                }
+
+                enemySpawnConfig = level.CreateEnemySpawnConfig();
+
                 // Reset player systems for fresh start
                 if (PlayerLevelSystem.Instance != null)
                 {

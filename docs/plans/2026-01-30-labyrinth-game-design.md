@@ -121,11 +121,11 @@ A mobile 2D top-down procedural labyrinth game where the player must find a key 
 - Base speed: 4 units/second
 - Increases to 4.5 after 30 seconds of chase
 
-### Combat
+### Contact Damage
 - 1 damage on contact
 - Knockback player slightly
-- 2-second attack cooldown
-- 0.5s pause after attacking
+- 2-second cooldown between hits
+- There is NO combat system - the player cannot attack or defeat enemies, only avoid them
 
 ### Visibility
 - Only visible in player's line-of-sight

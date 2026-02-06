@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Labyrinth.Maze;
 using Labyrinth.Items;
+using Labyrinth.Enemy;
 
 namespace Labyrinth.Progression
 {
@@ -87,6 +88,51 @@ namespace Labyrinth.Progression
             }
 
             config.SetValues(_keyItemPrefab, _xpItemPrefab, _xpItemCount, _generalItemCount, itemPool);
+            return config;
+        }
+
+        /// <summary>
+        /// Creates an EnemySpawnConfig from this level's enemy pool settings.
+        /// Identifies enemy types by checking for controller components on prefabs.
+        /// </summary>
+        public EnemySpawnConfig CreateEnemySpawnConfig()
+        {
+            var config = CreateInstance<EnemySpawnConfig>();
+
+            GameObject guardPrefab = null;
+            int maxGuards = 0;
+            GameObject molePrefab = null;
+            int maxMoles = 0;
+            GameObject stalkerPrefab = null;
+            int maxStalkers = 0;
+
+            foreach (var entry in _enemyPool)
+            {
+                if (entry.prefab == null) continue;
+
+                if (entry.prefab.GetComponent<PatrollingGuardController>() != null)
+                {
+                    guardPrefab = entry.prefab;
+                    maxGuards = entry.count;
+                }
+                else if (entry.prefab.GetComponent<BlindMoleController>() != null)
+                {
+                    molePrefab = entry.prefab;
+                    maxMoles = entry.count;
+                }
+                else if (entry.prefab.GetComponent<ShadowStalkerController>() != null)
+                {
+                    stalkerPrefab = entry.prefab;
+                    maxStalkers = entry.count;
+                }
+            }
+
+            config.SetValues(
+                guardPrefab, maxGuards, 1f,
+                molePrefab, maxMoles, 1f,
+                stalkerPrefab, maxStalkers, 1f
+            );
+
             return config;
         }
     }

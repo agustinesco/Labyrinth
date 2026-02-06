@@ -25,7 +25,7 @@ namespace Labyrinth.Visibility
         [Header("Ambient Circle Settings")]
         [SerializeField] private float ambientRadius = 3f;
         [SerializeField, Tooltip("Number of rays for ambient circle (lower = better performance)")]
-        private int ambientRayCount = 36;
+        private int ambientRayCount = 60;
 
         [Header("References")]
         [SerializeField] private LayerMask wallLayer;
@@ -37,11 +37,11 @@ namespace Labyrinth.Visibility
 
         [Header("Performance Settings")]
         [SerializeField, Tooltip("Texture resolution multiplier (lower = better performance, 6 is balanced for mobile)")]
-        private int textureResolutionMultiplier = 6;
+        private int textureResolutionMultiplier = 10;
         [SerializeField, Tooltip("Update visibility every N frames (1 = every frame, 2 = every other frame, etc.)")]
         private int updateEveryNFrames = 2;
         [SerializeField, Tooltip("Distance step for ray marching (higher = better performance, lower = more accurate)")]
-        private float rayMarchStep = 0.15f;
+        private float rayMarchStep = 0.12f;
 
         [Header("Smoothness Settings")]
         [SerializeField] private float edgeSoftness = 0.35f;
@@ -60,6 +60,7 @@ namespace Labyrinth.Visibility
         private Texture2D _explorationTexture;
         private float[,] _exploredValues;
         private float[,] _visibilityValues;
+        private bool _mapRevealed;
         private int _texWidth;
         private int _texHeight;
 
@@ -90,6 +91,7 @@ namespace Labyrinth.Visibility
         private static readonly int DiscoveredOpacityProperty = Shader.PropertyToID("_ExploredOpacity");
         private static readonly int VisibleOpacityProperty = Shader.PropertyToID("_VisibleOpacity");
         private static readonly int FogColorProperty = Shader.PropertyToID("_FogColor");
+        private static readonly int TexelSizeProperty = Shader.PropertyToID("_TexelSize");
 
         public float CurrentRadius => baseVisibilityRadius + _visibilityBonus + (PlayerLevelSystem.Instance?.PermanentVisionBonus ?? 0f);
 
@@ -238,6 +240,9 @@ namespace Labyrinth.Visibility
             _material.SetTexture(VisibilityTexProperty, _visibilityTexture);
             _material.SetTexture(ExplorationTexProperty, _explorationTexture);
             _material.SetVector(MazeSizeProperty, new Vector4(mazeWidth, mazeHeight, 0, 0));
+            _material.SetVector(TexelSizeProperty, new Vector4(
+                1f / (mazeWidth * textureResolutionMultiplier),
+                1f / (mazeHeight * textureResolutionMultiplier), 0, 0));
 
             UpdateShaderOpacitySettings();
         }
@@ -313,6 +318,16 @@ namespace Labyrinth.Visibility
 
         private void UpdateVisibility()
         {
+            if (_mapRevealed)
+            {
+                // Fill all visibility to fully visible
+                for (int x = 0; x < _texWidth; x++)
+                    for (int y = 0; y < _texHeight; y++)
+                        _visibilityValues[x, y] = 1f;
+                ApplyVisibilityToTexture();
+                return;
+            }
+
             // Clear visibility values using fast array clear
             System.Array.Clear(_visibilityValues, 0, _visibilityValues.Length);
             _explorationDirty = false;
@@ -585,6 +600,8 @@ namespace Labyrinth.Visibility
                 return;
             }
 
+            _mapRevealed = true;
+
             for (int x = 0; x < _texWidth; x++)
             {
                 for (int y = 0; y < _texHeight; y++)
@@ -600,6 +617,7 @@ namespace Labyrinth.Visibility
 
             _explorationTexture.SetPixels(_explorationPixels);
             _explorationTexture.Apply(false);
+            _forceUpdate = true;
             Debug.Log("[FogOfWar] Entire map revealed");
         }
 

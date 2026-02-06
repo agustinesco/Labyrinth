@@ -9329,6 +9329,7 @@ MonoBehaviour:
   floorTileOneWall: {fileID: 11400000, guid: 80b871a4a3e084c80bd69452ead554b0, type: 2}
   floorTileWallAbove: {fileID: 11400000, guid: 9d02b07e539cd440ab7a5686e322bccc, type: 2}
   floorTileCorner: {fileID: 11400000, guid: 9ffc6924fc6164f538d364853f39a02b, type: 2}
+  floorTileCornerTop: {fileID: 11400000, guid: 6d9fa2953f85949b98a2cd45fd37879e, type: 2}
   floorTileDiagonalWall: {fileID: 11400000, guid: 7728aaa36cfe449fe8b502383a92ebc0, type: 2}
   floorTileDiagonalWallRight: {fileID: 11400000, guid: 191b4c5ec2d6949adbb2c4ea75346503, type: 2}
   wallTileIsolated: {fileID: 11400000, guid: f8efbb27a64414dc2b659ffa839e3bf1, type: 2}
