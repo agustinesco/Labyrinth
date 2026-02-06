@@ -55,7 +55,7 @@ MonoBehaviour:
     count: 3
     spawnDelayOverride: -1
   - prefab: {fileID: 3662455487589520068, guid: 1482d747cf2f2422e89bca61adccbb79, type: 3}
-    count: 2
+    count: 1
     spawnDelayOverride: -1
   _enemySpawnDelay: 45
   _objectives:

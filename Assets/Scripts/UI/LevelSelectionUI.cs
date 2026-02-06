@@ -14,6 +14,7 @@ namespace Labyrinth.UI
         [SerializeField] private Transform _nodeContainer;
         [SerializeField] private Button _backButton;
         [SerializeField] private Button _resetProgressButton;
+        [SerializeField] private Button _unlockAllButton;
         [SerializeField] private ScrollRect _scrollRect;
 
         [Header("Detail Panel")]
@@ -31,8 +32,12 @@ namespace Labyrinth.UI
 
         private void Start()
         {
+            if (_unlockAllButton == null)
+                CreateUnlockAllButton();
+
             _backButton.onClick.AddListener(OnBackClicked);
             _resetProgressButton.onClick.AddListener(OnResetProgressClicked);
+            _unlockAllButton.onClick.AddListener(OnUnlockAllClicked);
             _startButton.onClick.AddListener(OnStartClicked);
             _closeDetailButton.onClick.AddListener(CloseDetailPanel);
 
@@ -44,8 +49,30 @@ namespace Labyrinth.UI
         {
             _backButton.onClick.RemoveListener(OnBackClicked);
             _resetProgressButton.onClick.RemoveListener(OnResetProgressClicked);
+            if (_unlockAllButton != null)
+                _unlockAllButton.onClick.RemoveListener(OnUnlockAllClicked);
             _startButton.onClick.RemoveListener(OnStartClicked);
             _closeDetailButton.onClick.RemoveListener(CloseDetailPanel);
+        }
+
+        private void CreateUnlockAllButton()
+        {
+            var go = Instantiate(_resetProgressButton.gameObject, _resetProgressButton.transform.parent);
+            go.name = "UnlockAllButton";
+
+            // Position below the reset button
+            var rt = go.GetComponent<RectTransform>();
+            var resetRt = _resetProgressButton.GetComponent<RectTransform>();
+            var pos = resetRt.anchoredPosition;
+            pos.y -= resetRt.sizeDelta.y + 10f;
+            rt.anchoredPosition = pos;
+
+            // Update the label
+            var label = go.GetComponentInChildren<TextMeshProUGUI>();
+            if (label != null)
+                label.text = "Unlock All";
+
+            _unlockAllButton = go.GetComponent<Button>();
         }
 
         private void BuildTree()
@@ -156,6 +183,13 @@ namespace Labyrinth.UI
         private void OnResetProgressClicked()
         {
             LevelProgressionManager.Instance?.ResetAllProgress();
+            CloseDetailPanel();
+            RefreshNodeStates();
+        }
+
+        private void OnUnlockAllClicked()
+        {
+            LevelProgressionManager.Instance?.UnlockAllLevels();
             CloseDetailPanel();
             RefreshNodeStates();
         }

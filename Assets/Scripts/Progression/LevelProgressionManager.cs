@@ -122,6 +122,16 @@ namespace Labyrinth.Progression
             SceneManager.LoadScene("LevelSelection");
         }
 
+        public void UnlockAllLevels()
+        {
+            foreach (var level in _allLevels)
+            {
+                _saveData.MarkLevelCompleted(level.LevelId);
+            }
+            SaveProgress();
+            OnProgressLoaded?.Invoke();
+        }
+
         public void ResetAllProgress()
         {
             _saveData = new ProgressionSaveData();
