@@ -138,15 +138,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   patrolSpeed: 2.5
-  chaseSpeed: 4
+  chaseSpeed: 3
   pauseDuration: 0.5
-  visionRange: 6
-  visionConeAngle: 60
-  wallLayer:
-    serializedVersion: 2
-    m_Bits: 256
   pathRecalculateInterval: 0.3
-  losePlayerTime: 3
+  losePlayerTime: 1
   searchDuration: 3
   lookAroundInterval: 0.75
   lookDirections: 4

@@ -137,10 +137,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inactiveDuration: 3
   emergingDuration: 1
-  activeDuration: 4
+  activeDuration: 3
   hidingDuration: 1
-  detectionRadius: 4
-  movementThreshold: 0.1
+  movementThreshold: 0.5
   projectilePrefab: {fileID: 0}
   projectileSpeed: 8
   projectileDamage: 1

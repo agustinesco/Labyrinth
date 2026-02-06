@@ -140,6 +140,7 @@ MonoBehaviour:
   pathRecalculateInterval: 0.5
   attackCooldown: 2
   damage: 1
+  detectionRange: 8
 --- !u!114 &5551338976252948916
 MonoBehaviour:
   m_ObjectHideFlags: 0
