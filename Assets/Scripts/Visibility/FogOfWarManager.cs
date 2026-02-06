@@ -60,6 +60,7 @@ namespace Labyrinth.Visibility
         private Texture2D _explorationTexture;
         private float[,] _exploredValues;
         private float[,] _visibilityValues;
+        private bool _mapRevealed;
         private int _texWidth;
         private int _texHeight;
 
@@ -313,6 +314,16 @@ namespace Labyrinth.Visibility
 
         private void UpdateVisibility()
         {
+            if (_mapRevealed)
+            {
+                // Fill all visibility to fully visible
+                for (int x = 0; x < _texWidth; x++)
+                    for (int y = 0; y < _texHeight; y++)
+                        _visibilityValues[x, y] = 1f;
+                ApplyVisibilityToTexture();
+                return;
+            }
+
             // Clear visibility values using fast array clear
             System.Array.Clear(_visibilityValues, 0, _visibilityValues.Length);
             _explorationDirty = false;
@@ -585,6 +596,8 @@ namespace Labyrinth.Visibility
                 return;
             }
 
+            _mapRevealed = true;
+
             for (int x = 0; x < _texWidth; x++)
             {
                 for (int y = 0; y < _texHeight; y++)
@@ -600,6 +613,7 @@ namespace Labyrinth.Visibility
 
             _explorationTexture.SetPixels(_explorationPixels);
             _explorationTexture.Apply(false);
+            _forceUpdate = true;
             Debug.Log("[FogOfWar] Entire map revealed");
         }
 
