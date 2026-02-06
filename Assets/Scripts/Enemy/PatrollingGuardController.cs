@@ -483,15 +483,8 @@ namespace Labyrinth.Enemy
             Vector2 toPlayer = playerPos - guardPos;
             float distance = toPlayer.magnitude;
 
-            // Apply Shadow Blend detection reduction
-            float effectiveVisionRange = config.VisionRange;
-            if (ShadowBlendManager.Instance != null)
-            {
-                effectiveVisionRange *= ShadowBlendManager.Instance.DetectionRangeMultiplier;
-            }
-
-            // Check range (with Shadow Blend modifier)
-            if (distance > effectiveVisionRange)
+            // Check range
+            if (distance > config.VisionRange)
                 return false;
 
             // Check angle within cone (if not omnidirectional)

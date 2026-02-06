@@ -11,10 +11,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: eb97e66b7f85f4a8cb368df5fbb34e43, type: 3}
   m_Name: ShadowStalkerAwareness
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   instantDetection: 0
   detectionThreshold: 100
-  awarenessGainRate: 50
+  awarenessGainRate: 25
   awarenessDecayRate: 5
   stopWhileGaining: 0
   distanceScalingFactor: 0.5

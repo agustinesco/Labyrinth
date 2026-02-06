@@ -15,8 +15,7 @@ MonoBehaviour:
   isActive: 1
   assetVersion: 1
   displayName: Shadow Blend
-  description: Stand still for 2 seconds to blend into shadows. Enemies have reduced
-    detection range.
+  description: Blend into the shadows. Enemies take longer to detect you.
   icon: {fileID: 0}
   cardTint: {r: 0.3, g: 0.3, b: 0.5, a: 1}
   upgradeType: 4
