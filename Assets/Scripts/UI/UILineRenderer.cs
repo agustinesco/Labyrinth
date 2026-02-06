@@ -4,34 +4,50 @@ using UnityEngine.UI;
 namespace Labyrinth.UI
 {
     [RequireComponent(typeof(CanvasRenderer))]
-    public class UILineRenderer : Graphic
+    public class UILineRenderer : MaskableGraphic
     {
         [SerializeField] private float _lineWidth = 4f;
         [SerializeField] private Color _lineColor = Color.white;
 
+        [Header("Connected Nodes")]
+        [SerializeField] private RectTransform _fromNode;
+        [SerializeField] private RectTransform _toNode;
+
         private Vector2 _startPoint;
         private Vector2 _endPoint;
 
-        public void SetPositions(Vector3 worldStart, Vector3 worldEnd)
+        protected override void OnEnable()
         {
-            var canvas = GetComponentInParent<Canvas>();
-            if (canvas == null) return;
+            base.OnEnable();
+            transform.SetAsFirstSibling();
+            UpdatePositionsFromNodes();
+        }
 
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                rectTransform.parent as RectTransform,
-                RectTransformUtility.WorldToScreenPoint(canvas.worldCamera, worldStart),
-                canvas.worldCamera,
-                out _startPoint
-            );
+        private void LateUpdate()
+        {
+            UpdatePositionsFromNodes();
+        }
 
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                rectTransform.parent as RectTransform,
-                RectTransformUtility.WorldToScreenPoint(canvas.worldCamera, worldEnd),
-                canvas.worldCamera,
-                out _endPoint
-            );
+        private void UpdatePositionsFromNodes()
+        {
+            if (_fromNode == null || _toNode == null) return;
 
-            SetVerticesDirty();
+            var parentRect = rectTransform.parent as RectTransform;
+            if (parentRect == null) return;
+
+            Vector2 from = _fromNode.anchoredPosition;
+            Vector2 to = _toNode.anchoredPosition;
+
+            // Offset to node center (pivot is at left-center, node is 150x100)
+            from.x += _fromNode.sizeDelta.x * 0.5f;
+            to.x += _toNode.sizeDelta.x * 0.5f;
+
+            if (from != _startPoint || to != _endPoint)
+            {
+                _startPoint = from;
+                _endPoint = to;
+                SetVerticesDirty();
+            }
         }
 
         public void SetLocalPositions(Vector2 start, Vector2 end)
@@ -53,7 +69,6 @@ namespace Labyrinth.UI
             UIVertex vertex = UIVertex.simpleVert;
             vertex.color = _lineColor;
 
-            // Create quad for line
             vertex.position = _startPoint - perpendicular;
             vh.AddVert(vertex);
 

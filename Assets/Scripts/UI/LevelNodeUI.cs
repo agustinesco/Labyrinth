@@ -18,29 +18,35 @@ namespace Labyrinth.UI
         [SerializeField] private TextMeshProUGUI _progressText;
         [SerializeField] private Outline _selectionOutline;
 
+        [Header("Configuration")]
+        [SerializeField] private LevelDefinition _level;
+
         [Header("Colors")]
         [SerializeField] private Color _lockedColor = new Color(0.5f, 0.5f, 0.5f, 1f);
         [SerializeField] private Color _availableColor = Color.white;
         [SerializeField] private Color _completedColor = new Color(0.7f, 1f, 0.7f, 1f);
 
-        private LevelDefinition _level;
         private Action<LevelDefinition> _onClicked;
 
-        public void Setup(LevelDefinition level, Action<LevelDefinition> onClicked)
+        public LevelDefinition Level => _level;
+
+        public void Initialize(Action<LevelDefinition> onClicked)
         {
-            _level = level;
             _onClicked = onClicked;
 
-            _nameText.text = level.DisplayName;
+            if (_level != null)
+            {
+                _nameText.text = _level.DisplayName;
 
-            if (_iconImage != null && level.Icon != null)
-            {
-                _iconImage.sprite = level.Icon;
-                _iconImage.enabled = true;
-            }
-            else if (_iconImage != null)
-            {
-                _iconImage.enabled = false;
+                if (_iconImage != null && _level.Icon != null)
+                {
+                    _iconImage.sprite = _level.Icon;
+                    _iconImage.enabled = true;
+                }
+                else if (_iconImage != null)
+                {
+                    _iconImage.enabled = false;
+                }
             }
 
             _button.onClick.AddListener(OnClick);
