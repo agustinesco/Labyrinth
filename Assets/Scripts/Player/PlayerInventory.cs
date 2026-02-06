@@ -4,6 +4,7 @@ using UnityEngine;
 using Labyrinth.Items;
 using Labyrinth.Visibility;
 using Labyrinth.Leveling;
+using Labyrinth.UI;
 
 namespace Labyrinth.Player
 {
@@ -46,7 +47,10 @@ namespace Labyrinth.Player
                 return;
 
             var item = _items[0];
-            ApplyItemEffect(item);
+            bool success = ApplyItemEffect(item);
+
+            if (!success)
+                return;
 
             // Check if item should be removed (single use or no uses remaining)
             if (item.ConsumeUse())
@@ -78,7 +82,10 @@ namespace Labyrinth.Player
                 return;
 
             var item = _items[index];
-            ApplyItemEffect(item);
+            bool success = ApplyItemEffect(item);
+
+            if (!success)
+                return;
 
             // Check if item should be removed (single use or no uses remaining)
             if (item.ConsumeUse())
@@ -89,7 +96,11 @@ namespace Labyrinth.Player
             OnInventoryChanged?.Invoke();
         }
 
-        private void ApplyItemEffect(InventoryItem item)
+        /// <summary>
+        /// Applies the item effect. Returns false if the item failed to activate
+        /// and should NOT be consumed.
+        /// </summary>
+        private bool ApplyItemEffect(InventoryItem item)
         {
             switch (item.Type)
             {
@@ -158,13 +169,11 @@ namespace Labyrinth.Player
 
                 case ItemType.Tunnel:
                     // Create a tunnel through a 1-tile thick wall
-                    ActivateTunnel();
-                    break;
+                    return ActivateTunnel();
 
                 case ItemType.SilkWorm:
                     // Create a silk string trap between walls
-                    ActivateSilkWorm(item.EffectValue, item.Duration);
-                    break;
+                    return ActivateSilkWorm(item.EffectValue, item.Duration);
 
                 case ItemType.EagleEye:
                     // Temporarily increase vision range
@@ -174,6 +183,8 @@ namespace Labyrinth.Player
                     }
                     break;
             }
+
+            return true;
         }
 
         private void ActivateGlider(float duration)
@@ -199,20 +210,20 @@ namespace Labyrinth.Player
             }
         }
 
-        private void ActivateTunnel()
+        private bool ActivateTunnel()
         {
             var mazeRenderer = FindObjectOfType<Labyrinth.Maze.MazeRenderer>();
             if (mazeRenderer == null)
             {
-                ShowTunnelError("Cannot create tunnel - maze not found!");
-                return;
+                ShowItemMessage("No valid target found");
+                return false;
             }
 
             var grid = mazeRenderer.GetGrid();
             if (grid == null)
             {
-                ShowTunnelError("Cannot create tunnel - maze grid not found!");
-                return;
+                ShowItemMessage("No valid target found");
+                return false;
             }
 
             Vector2 playerPos = transform.position;
@@ -291,13 +302,13 @@ namespace Labyrinth.Player
 
                 if (anyWallNearby)
                 {
-                    ShowTunnelError("Wall is too thick to tunnel through!");
+                    ShowItemMessage("Wall is too thick to tunnel through!");
                 }
                 else
                 {
-                    ShowTunnelError("No wall nearby!");
+                    ShowItemMessage("No wall nearby!");
                 }
-                return;
+                return false;
             }
 
             // Calculate entrance positions (center of floor cells on each side)
@@ -313,16 +324,19 @@ namespace Labyrinth.Player
 
             // Create the tunnel
             Labyrinth.Items.TunnelEntrance.CreateTunnel(entranceAPos, entranceBPos);
+            return true;
         }
 
-        private void ShowTunnelError(string message)
+        private void ShowItemMessage(string message)
         {
-            Debug.LogWarning($"[Tunnel] {message}");
-            // TODO: Show UI message to player
-            // For now, just log it. Could integrate with a UI toast/notification system later.
+            Debug.LogWarning($"[Item] {message}");
+            if (ItemMessageUI.Instance != null)
+            {
+                ItemMessageUI.Instance.ShowMessage(message);
+            }
         }
 
-        private void ActivateSilkWorm(float snareDuration, float lifetime)
+        private bool ActivateSilkWorm(float snareDuration, float lifetime)
         {
             Vector2 playerPos = transform.position;
             LayerMask wallLayer = FogOfWarManager.Instance != null ? FogOfWarManager.Instance.WallLayer : (LayerMask)(1 << 8);
@@ -349,8 +363,8 @@ namespace Labyrinth.Player
 
             if (closestDistance == float.MaxValue)
             {
-                Debug.LogWarning("[SilkWorm] No wall found nearby!");
-                return;
+                ShowItemMessage("No wall found nearby!");
+                return false;
             }
 
             // Find a second wall that faces the OPPOSITE direction (toward the first wall)
@@ -432,8 +446,8 @@ namespace Labyrinth.Player
 
             if (!foundValidSecondWall)
             {
-                Debug.LogWarning("[SilkWorm] Could not find a second wall facing the opposite direction!");
-                return;
+                ShowItemMessage("Can't find two facing walls!");
+                return false;
             }
 
             // Offset points slightly away from walls so the string is visible
@@ -442,6 +456,7 @@ namespace Labyrinth.Player
 
             // Create the silk string
             Labyrinth.Items.SilkString.CreateBetween(pointA, pointB, snareDuration, 3, lifetime);
+            return true;
         }
 
         private void SpawnWispOrb()
