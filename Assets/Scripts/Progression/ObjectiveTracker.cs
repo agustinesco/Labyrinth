@@ -13,7 +13,6 @@ namespace Labyrinth.Progression
         private LevelDefinition _level;
         private List<ObjectiveState> _objectives = new();
         private float _elapsedTime;
-        private bool _wasDetected;
 
         public IReadOnlyList<ObjectiveState> Objectives => _objectives;
         public bool AllObjectivesCompleted => _objectives.TrueForAll(o => o.IsCompleted);
@@ -45,8 +44,6 @@ namespace Labyrinth.Progression
             _level = level;
             _objectives.Clear();
             _elapsedTime = 0f;
-            _wasDetected = false;
-
             for (int i = 0; i < level.Objectives.Count; i++)
             {
                 var objective = level.Objectives[i];
@@ -118,21 +115,6 @@ namespace Labyrinth.Progression
                             CompleteObjective(i);
                         }
                     }
-                }
-            }
-        }
-
-        public void OnPlayerDetected()
-        {
-            _wasDetected = true;
-
-            for (int i = 0; i < _objectives.Count; i++)
-            {
-                var state = _objectives[i];
-                if (state.Definition.Type == ObjectiveType.NoDetection && !state.IsCompleted)
-                {
-                    state.Failed = true;
-                    OnObjectiveFailed?.Invoke();
                 }
             }
         }

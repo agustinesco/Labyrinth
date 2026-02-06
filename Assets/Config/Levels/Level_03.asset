@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Level_03
   m_EditorClassIdentifier: 
   _levelId: level_03a
-  _displayName: The Hunt
-  _description: Long corridors and many guards. Stay hidden or run - but do it quickly.
+  _displayName: Icy Runes
+  _description: Frozen corridors lined with ancient runes. Guards patrol every passage and
+    the clock is ticking.
   _icon: {fileID: 0}
   _mazeWidth: 80
   _mazeHeight: 80
@@ -25,8 +26,26 @@ MonoBehaviour:
   _xpItemCount: 70
   _itemPool:
   - prefab: {fileID: 206249537866367262, guid: b67a63683dc25499db625decf526be96, type: 3}
-    weight: 2
-    maxCount: 5
+    weight: 1
+    maxCount: 3
+  - prefab: {fileID: 3310306429715238226, guid: 81ed7bc2b3ead4d46aae798de5ddacbe, type: 3}
+    weight: 1
+    maxCount: 3
+  - prefab: {fileID: 2445591376184931953, guid: 24f01ed17a17e4e2e8500071aa9f9198, type: 3}
+    weight: 1
+    maxCount: 3
+  - prefab: {fileID: 2445591376184931953, guid: 24f01ed17a17e4e2e8500071aa9f9198, type: 3}
+    weight: 1
+    maxCount: 3
+  - prefab: {fileID: 4027709342820561329, guid: 6d4dc7121b1104d1cafa77e44013a5ce, type: 3}
+    weight: 1
+    maxCount: 3
+  - prefab: {fileID: 2907238623484038195, guid: 1d1cfb964a41b4a9ead22ff6dbdbfc6f, type: 3}
+    weight: 1
+    maxCount: 3
+  - prefab: {fileID: 143142313086962865, guid: 4de990cf6546a4f74886bf73f730e419, type: 3}
+    weight: 1
+    maxCount: 3
   _generalItemCount: 12
   _enemyPool:
   - prefab: {fileID: 1492281182213793184, guid: 025a804bbd72748f9b4cfac74caa53e0, type: 3}
@@ -34,12 +53,6 @@ MonoBehaviour:
     spawnDelayOverride: -1
   _enemySpawnDelay: 30
   _objectives:
-  - _type: 4
-    _description: Escape without being detected
-    _targetCount: 0
-    _targetTime: 0
-    _itemType:
-    _persistProgress: 0
   - _type: 3
     _description: Escape under 90 seconds
     _targetCount: 0

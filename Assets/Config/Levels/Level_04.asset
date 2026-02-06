@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Level_04
   m_EditorClassIdentifier: 
   _levelId: level_03b
-  _displayName: Shadow Path
-  _description: The moles sense vibration, not sight. Move carefully and gather light
-    to illuminate your path.
+  _displayName: Sup Wreck
+  _description: A sunken ship lost beneath the waves. Gather light sources to find your
+    way through the dark wreckage.
   _icon: {fileID: 0}
   _mazeWidth: 60
   _mazeHeight: 80
@@ -25,10 +25,25 @@ MonoBehaviour:
   _xpItemPrefab: {fileID: 2907266021306952476, guid: dd29c5da5a79e4cb38e149650b013592, type: 3}
   _xpItemCount: 70
   _itemPool:
-  - prefab: {fileID: 6032026547202804775, guid: 89323ebca8380475e82f65d42d86c484, type: 3}
-    weight: 3
-    maxCount: 6
   - prefab: {fileID: 206249537866367262, guid: b67a63683dc25499db625decf526be96, type: 3}
+    weight: 1
+    maxCount: 3
+  - prefab: {fileID: 3310306429715238226, guid: 81ed7bc2b3ead4d46aae798de5ddacbe, type: 3}
+    weight: 1
+    maxCount: 3
+  - prefab: {fileID: 2445591376184931953, guid: 24f01ed17a17e4e2e8500071aa9f9198, type: 3}
+    weight: 1
+    maxCount: 3
+  - prefab: {fileID: 2445591376184931953, guid: 24f01ed17a17e4e2e8500071aa9f9198, type: 3}
+    weight: 1
+    maxCount: 3
+  - prefab: {fileID: 4027709342820561329, guid: 6d4dc7121b1104d1cafa77e44013a5ce, type: 3}
+    weight: 1
+    maxCount: 3
+  - prefab: {fileID: 2907238623484038195, guid: 1d1cfb964a41b4a9ead22ff6dbdbfc6f, type: 3}
+    weight: 1
+    maxCount: 3
+  - prefab: {fileID: 143142313086962865, guid: 4de990cf6546a4f74886bf73f730e419, type: 3}
     weight: 1
     maxCount: 3
   _generalItemCount: 12
@@ -38,12 +53,6 @@ MonoBehaviour:
     spawnDelayOverride: -1
   _enemySpawnDelay: 40
   _objectives:
-  - _type: 4
-    _description: Escape without detection
-    _targetCount: 0
-    _targetTime: 0
-    _itemType: 
-    _persistProgress: 0
   - _type: 1
     _description: Collect 3 light sources
     _targetCount: 3

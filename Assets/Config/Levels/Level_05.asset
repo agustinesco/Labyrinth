@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Level_05
   m_EditorClassIdentifier: 
   _levelId: level_04
-  _displayName: The Deep
-  _description: The largest labyrinth yet. Survive the depths and collect the riches
-    hidden within.
+  _displayName: Abbey
+  _description: The crumbling abbey holds treasures in its vast halls. Gather every gem
+    you can and survive long enough to claim them.
   _icon: {fileID: 0}
   _mazeWidth: 100
   _mazeHeight: 100
@@ -26,11 +26,26 @@ MonoBehaviour:
   _xpItemCount: 100
   _itemPool:
   - prefab: {fileID: 206249537866367262, guid: b67a63683dc25499db625decf526be96, type: 3}
-    weight: 2
-    maxCount: 6
-  - prefab: {fileID: 6032026547202804775, guid: 89323ebca8380475e82f65d42d86c484, type: 3}
     weight: 1
-    maxCount: 4
+    maxCount: 3
+  - prefab: {fileID: 3310306429715238226, guid: 81ed7bc2b3ead4d46aae798de5ddacbe, type: 3}
+    weight: 1
+    maxCount: 3
+  - prefab: {fileID: 2445591376184931953, guid: 24f01ed17a17e4e2e8500071aa9f9198, type: 3}
+    weight: 1
+    maxCount: 3
+  - prefab: {fileID: 2445591376184931953, guid: 24f01ed17a17e4e2e8500071aa9f9198, type: 3}
+    weight: 1
+    maxCount: 3
+  - prefab: {fileID: 4027709342820561329, guid: 6d4dc7121b1104d1cafa77e44013a5ce, type: 3}
+    weight: 1
+    maxCount: 3
+  - prefab: {fileID: 2907238623484038195, guid: 1d1cfb964a41b4a9ead22ff6dbdbfc6f, type: 3}
+    weight: 1
+    maxCount: 3
+  - prefab: {fileID: 143142313086962865, guid: 4de990cf6546a4f74886bf73f730e419, type: 3}
+    weight: 1
+    maxCount: 3
   _generalItemCount: 18
   _enemyPool:
   - prefab: {fileID: 1492281182213793184, guid: 025a804bbd72748f9b4cfac74caa53e0, type: 3}
@@ -42,8 +57,8 @@ MonoBehaviour:
   _enemySpawnDelay: 35
   _objectives:
   - _type: 1
-    _description: Collect 8 XP gems
-    _targetCount: 8
+    _description: Collect 100 XP gems
+    _targetCount: 100
     _targetTime: 0
     _itemType: XP
     _persistProgress: 1

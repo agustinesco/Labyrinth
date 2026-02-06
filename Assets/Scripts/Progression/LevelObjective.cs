@@ -8,8 +8,7 @@ namespace Labyrinth.Progression
         ReachExit,
         CollectItems,
         SurviveTime,
-        TimeLimit,
-        NoDetection
+        TimeLimit
     }
 
     [Serializable]
