@@ -63,13 +63,13 @@ namespace Labyrinth.Maze
         {
             _grid = new MazeGrid(_width, _height);
 
-            // Calculate and carve the key room in the center
-            CarveKeyRoom();
-
             // Start position needs to account for corridor width
             int halfWidth = _corridorWidth / 2;
             int startX = 1 + halfWidth;
             int startY = 1 + halfWidth;
+
+            // Calculate and carve the key room in a quadrant opposite the player
+            CarveKeyRoom(startX, startY);
 
             // Use Growing Tree algorithm with configurable branching
             GrowingTreeGenerate(startX, startY);
@@ -298,13 +298,51 @@ namespace Labyrinth.Maze
             return _grid.GetCell(x, y).IsWall;
         }
 
-        private void CarveKeyRoom()
+        private void CarveKeyRoom(int startX, int startY)
         {
-            // Calculate room center (center of the maze)
-            _roomCenterX = _width / 2;
-            _roomCenterY = _height / 2;
-
             int roomHalf = RoomSize / 2;
+            int margin = roomHalf + 1; // keep room away from maze edges
+
+            // Determine which quadrant the player starts in
+            int midX = _width / 2;
+            int midY = _height / 2;
+            bool playerIsLeft = startX < midX;
+            bool playerIsBottom = startY < midY;
+
+            // Collect the 3 quadrants opposite to the player's quadrant
+            // Each quadrant center is at (1/4 or 3/4) of the maze dimensions
+            var candidates = new List<(int cx, int cy)>();
+            int q1X = _width / 4;
+            int q3X = 3 * _width / 4;
+            int q1Y = _height / 4;
+            int q3Y = 3 * _height / 4;
+
+            // Add all 4 quadrant centers, then remove the player's quadrant
+            var allQuadrants = new List<(int cx, int cy, bool left, bool bottom)>
+            {
+                (q1X, q1Y, true, true),    // bottom-left
+                (q3X, q1Y, false, true),   // bottom-right
+                (q1X, q3Y, true, false),   // top-left
+                (q3X, q3Y, false, false),  // top-right
+            };
+
+            foreach (var (cx, cy, left, bottom) in allQuadrants)
+            {
+                if (left == playerIsLeft && bottom == playerIsBottom)
+                    continue; // skip the player's own quadrant
+                candidates.Add((cx, cy));
+            }
+
+            // Pick a random candidate quadrant
+            var chosen = candidates[_random.Next(candidates.Count)];
+
+            // Clamp room center so the 9x9 room stays within maze bounds
+            _roomCenterX = Mathf.Clamp(chosen.cx, margin, _width - 1 - margin);
+            _roomCenterY = Mathf.Clamp(chosen.cy, margin, _height - 1 - margin);
+
+            // Snap to nearest valid grid position (odd coordinate) so room aligns with maze grid
+            if (_roomCenterX % 2 == 0) _roomCenterX++;
+            if (_roomCenterY % 2 == 0) _roomCenterY++;
 
             // Carve the 9x9 room area and mark as key room
             for (int x = _roomCenterX - roomHalf; x <= _roomCenterX + roomHalf; x++)

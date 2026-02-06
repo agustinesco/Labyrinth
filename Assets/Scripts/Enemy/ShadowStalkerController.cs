@@ -80,7 +80,7 @@ namespace Labyrinth.Enemy
         {
             _grid = grid;
             _player = player;
-            _playerController = player.GetComponent<PlayerController>();
+            _playerController = player != null ? player.GetComponent<PlayerController>() : null;
             _pathfinding = new Pathfinding(grid);
             _spriteRenderer = GetComponent<SpriteRenderer>();
 

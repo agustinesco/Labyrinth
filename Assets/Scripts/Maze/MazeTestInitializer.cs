@@ -271,6 +271,9 @@ namespace Labyrinth.Maze
 
             if (mainCamera != null && _activeMazeConfig != null)
             {
+                // Ensure camera is orthographic for 2D maze view
+                mainCamera.orthographic = true;
+
                 // Center camera on maze
                 mainCamera.transform.position = new Vector3(
                     _activeMazeConfig.Width / 2f,
