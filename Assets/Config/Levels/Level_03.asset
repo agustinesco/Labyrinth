@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _levelId: level_03a
   _displayName: Icy Runes
-  _description: Frozen corridors lined with ancient runes. Guards patrol every passage and
-    the clock is ticking.
+  _description: Frozen corridors lined with ancient runes. Guards patrol every passage
+    and the clock is ticking.
   _icon: {fileID: 0}
   _mazeWidth: 80
   _mazeHeight: 80
@@ -23,7 +23,7 @@ MonoBehaviour:
   _branchingFactor: 0.2
   _keyItemPrefab: {fileID: 4001355966450260499, guid: 9e3b88b48313342baaad655a0ac9b45b, type: 3}
   _xpItemPrefab: {fileID: 2907266021306952476, guid: dd29c5da5a79e4cb38e149650b013592, type: 3}
-  _xpItemCount: 70
+  _xpItemCount: 80
   _itemPool:
   - prefab: {fileID: 206249537866367262, guid: b67a63683dc25499db625decf526be96, type: 3}
     weight: 1
@@ -63,7 +63,7 @@ MonoBehaviour:
     _description: Escape without being detected
     _targetCount: 0
     _targetTime: 0
-    _itemType:
+    _itemType: 
     _persistProgress: 0
   - _type: 3
     _description: Escape under 90 seconds

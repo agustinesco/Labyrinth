@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _levelId: level_02
   _displayName: Graveyard
-  _description: The dead don't rest easy here. Scavenge XP gems among the tombstones while
-    patrols roam the foggy paths.
+  _description: The dead don't rest easy here. Scavenge XP gems among the tombstones
+    while patrols roam the foggy paths.
   _icon: {fileID: 0}
   _mazeWidth: 70
   _mazeHeight: 50
@@ -23,7 +23,7 @@ MonoBehaviour:
   _branchingFactor: 0.5
   _keyItemPrefab: {fileID: 4001355966450260499, guid: 9e3b88b48313342baaad655a0ac9b45b, type: 3}
   _xpItemPrefab: {fileID: 2907266021306952476, guid: dd29c5da5a79e4cb38e149650b013592, type: 3}
-  _xpItemCount: 50
+  _xpItemCount: 70
   _itemPool:
   - prefab: {fileID: 206249537866367262, guid: b67a63683dc25499db625decf526be96, type: 3}
     weight: 1
