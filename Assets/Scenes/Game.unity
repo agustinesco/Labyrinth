@@ -9354,7 +9354,7 @@ MonoBehaviour:
   - tile: {fileID: 11400000, guid: de2d2cdd2802a47668727ec860211782, type: 2}
     weight: 1
   decorationCoverage: 15
-  decorationSortingOrder: 1
+  decorationSortingOrder: -1
   wallColor: {r: 0.35, g: 0.24, b: 0.12, a: 1}
   floorColor: {r: 0.4, g: 0.3, b: 0.2, a: 1}
   startMarkerPrefab: {fileID: 0}
