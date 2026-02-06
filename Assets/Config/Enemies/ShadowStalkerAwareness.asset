@@ -19,7 +19,7 @@ MonoBehaviour:
   stopWhileGaining: 0
   distanceScalingFactor: 0.5
   maxScalingDistance: 10
-  visionRange: 10
+  visionRange: 6
   visionAngle: 360
   requiresLineOfSight: 1
   wallLayer:

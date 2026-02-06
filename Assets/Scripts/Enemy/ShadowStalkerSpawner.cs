@@ -214,6 +214,14 @@ namespace Labyrinth.Enemy
             if (stalkerPrefab != null)
             {
                 stalkerObj = Instantiate(stalkerPrefab, worldPos, Quaternion.identity);
+
+                // Ensure sprite is assigned (prefab may have empty SpriteRenderer)
+                var sr = stalkerObj.GetComponent<SpriteRenderer>();
+                if (sr != null && sr.sprite == null)
+                {
+                    sr.sprite = CreateStalkerSprite();
+                    sr.color = new Color(0.2f, 0.1f, 0.3f, 1f);
+                }
             }
             else
             {

@@ -159,6 +159,14 @@ namespace Labyrinth.Enemy
             if (molePrefab != null)
             {
                 moleObj = Instantiate(molePrefab, worldPos, Quaternion.identity);
+
+                // Ensure sprite is assigned (prefab may have empty SpriteRenderer)
+                var sr = moleObj.GetComponent<SpriteRenderer>();
+                if (sr != null && sr.sprite == null)
+                {
+                    sr.sprite = CreateMoleSprite();
+                    sr.color = new Color(0.5f, 0.35f, 0.25f);
+                }
             }
             else
             {

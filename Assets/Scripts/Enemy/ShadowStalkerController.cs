@@ -22,6 +22,8 @@ namespace Labyrinth.Enemy
         [Header("Vision Detection")]
         [SerializeField] private float visibilityThreshold = 0.1f;
         [SerializeField] private float freezeGracePeriod = 0.1f; // Brief delay before freezing
+        [SerializeField, Tooltip("Half-angle in degrees. Player must be facing within this angle to see the stalker.")]
+        private float facingAngleThreshold = 75f;
 
         [Header("Audio Feedback")]
         [SerializeField] private float creepingSoundInterval = 2f;
@@ -35,10 +37,15 @@ namespace Labyrinth.Enemy
         [SerializeField] private Color normalColor = new Color(0.2f, 0.1f, 0.3f, 1f);
         [SerializeField] private Color frozenColor = new Color(0.4f, 0.2f, 0.5f, 1f);
 
+        [Header("Detection")]
+        [SerializeField] private float detectionRadius = 8f;
+        [SerializeField] private float leashRadius = 20f;
+
         [Header("Awareness")]
         [SerializeField] private EnemyAwarenessConfig awarenessConfig;
 
         private Transform _player;
+        private PlayerController _playerController;
         private EnemyAwarenessController _awarenessController;
         private MazeGrid _grid;
         private Pathfinding _pathfinding;
@@ -63,12 +70,17 @@ namespace Labyrinth.Enemy
         // Track visibility state for smooth transitions
         private bool _wasVisibleLastFrame;
 
+        // Proximity detection
+        private Vector3 _spawnPoint;
+        private bool _isTracking;
+
         public bool IsFrozen => _isFrozen;
 
         public void Initialize(MazeGrid grid, Transform player)
         {
             _grid = grid;
             _player = player;
+            _playerController = player.GetComponent<PlayerController>();
             _pathfinding = new Pathfinding(grid);
             _spriteRenderer = GetComponent<SpriteRenderer>();
 
@@ -86,6 +98,8 @@ namespace Labyrinth.Enemy
             _awarenessController.SetAutoUpdate(false);
             _awarenessController.OnPlayerDetected += OnAwarenessDetection;
             _awarenessController.OnAwarenessLost += OnAwarenessLost;
+
+            _spawnPoint = transform.position;
 
             if (_spriteRenderer != null)
             {
@@ -152,7 +166,16 @@ namespace Labyrinth.Enemy
 
         private bool IsVisibleToPlayer()
         {
-            // Use the FogOfWarManager to check if our position is visible
+            if (_playerController == null || awarenessConfig == null)
+                return false;
+
+            // Check if the player is facing toward us
+            Vector2 dirToStalker = ((Vector2)transform.position - (Vector2)_player.position).normalized;
+            float angle = Vector2.Angle(_playerController.FacingDirection, dirToStalker);
+            if (angle > facingAngleThreshold)
+                return false;
+
+            // Also require FoW visibility (respects walls)
             if (FogOfWarManager.Instance == null)
                 return false;
 
@@ -174,11 +197,29 @@ namespace Labyrinth.Enemy
 
         private bool HasDetectedPlayer()
         {
-            // If no awareness controller, fall back to old behavior (always follow)
-            if (_awarenessController == null)
-                return true;
+            float distToPlayer = Vector2.Distance(transform.position, _player.position);
+            float playerDistFromSpawn = Vector2.Distance(_spawnPoint, _player.position);
 
-            return _awarenessController.HasDetectedPlayer;
+            if (_isTracking)
+            {
+                // Lose track if player exits leash radius
+                if (playerDistFromSpawn > leashRadius)
+                {
+                    _isTracking = false;
+                    return false;
+                }
+                return true;
+            }
+            else
+            {
+                // Start tracking when player enters detection radius
+                if (distToPlayer <= detectionRadius)
+                {
+                    _isTracking = true;
+                    return true;
+                }
+                return false;
+            }
         }
 
         private void UpdateFreezeState(bool isCurrentlyVisible)
@@ -362,12 +403,13 @@ namespace Labyrinth.Enemy
                 Gizmos.DrawWireSphere(transform.position, creepingSoundRange);
             }
 
-            // Draw detection range (from config)
-            if (_awarenessController != null && _awarenessController.Config != null)
-            {
-                Gizmos.color = HasDetectedPlayer() ? Color.red : Color.yellow;
-                Gizmos.DrawWireSphere(transform.position, _awarenessController.Config.VisionRange);
-            }
+            // Draw detection radius
+            Gizmos.color = _isTracking ? Color.red : Color.yellow;
+            Gizmos.DrawWireSphere(transform.position, detectionRadius);
+
+            // Draw leash radius around spawn point
+            Gizmos.color = Color.white;
+            Gizmos.DrawWireSphere(_spawnPoint, leashRadius);
         }
 
         private void OnDestroy()

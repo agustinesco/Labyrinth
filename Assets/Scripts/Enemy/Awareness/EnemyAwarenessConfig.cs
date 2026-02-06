@@ -46,6 +46,10 @@ namespace Labyrinth.Enemy.Awareness
         [SerializeField, Tooltip("Layers that block vision")]
         private LayerMask wallLayer = 1 << 8; // Default to layer 8
 
+        [Header("Facing Detection")]
+        [SerializeField, Tooltip("Half-angle in degrees. Enemy only considers player as 'facing' it within this angle from the player's look direction.")]
+        private float facingAngleThreshold = 45f;
+
         // Public accessors
         public bool InstantDetection => instantDetection;
         public float DetectionThreshold => detectionThreshold;
@@ -58,6 +62,7 @@ namespace Labyrinth.Enemy.Awareness
         public float VisionAngle => visionAngle;
         public bool RequiresLineOfSight => requiresLineOfSight;
         public LayerMask WallLayer => wallLayer;
+        public float FacingAngleThreshold => facingAngleThreshold;
 
         /// <summary>
         /// Calculates the effective gain rate based on distance to player.

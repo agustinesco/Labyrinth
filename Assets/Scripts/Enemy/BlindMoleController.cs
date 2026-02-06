@@ -200,7 +200,7 @@ namespace Labyrinth.Enemy
 
             if (playerInRange)
             {
-                // Check if player moved
+                // Check if player moved (movement accumulates while in range)
                 float playerMovement = Vector2.Distance(_player.position, _lastPlayerPosition);
 
                 if (_playerWasInRange && playerMovement > movementThreshold)
@@ -210,6 +210,7 @@ namespace Labyrinth.Enemy
                     _awarenessController?.ForceDetection();
                     ThrowProjectile();
                     EnterState(MoleState.Attacking);
+                    return;
                 }
 
                 _playerWasInRange = true;
@@ -217,9 +218,8 @@ namespace Labyrinth.Enemy
             else
             {
                 _playerWasInRange = false;
+                _lastPlayerPosition = _player.position;
             }
-
-            _lastPlayerPosition = _player.position;
         }
 
         private void UpdateAttacking()
