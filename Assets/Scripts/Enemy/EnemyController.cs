@@ -8,9 +8,9 @@ namespace Labyrinth.Enemy
 {
     public class EnemyController : MonoBehaviour
     {
-        [SerializeField] private float baseSpeed = 4f;
+        [SerializeField] private float baseSpeed = 2.5f;
         [SerializeField] private float speedIncreaseAfter = 30f;
-        [SerializeField] private float increasedSpeed = 4.5f;
+        [SerializeField] private float increasedSpeed = 3f;
         [SerializeField] private float attackCooldown = 2f;
         [SerializeField] private int damage = 1;
         [SerializeField] private float detectionRange = 8f;

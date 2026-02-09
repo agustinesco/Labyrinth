@@ -134,9 +134,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7f4d5e44d18649f1be80c1bf78909a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseSpeed: 4
+  baseSpeed: 2.5
   speedIncreaseAfter: 30
-  increasedSpeed: 4.5
+  increasedSpeed: 3
   attackCooldown: 2
   damage: 1
   detectionRange: 8
